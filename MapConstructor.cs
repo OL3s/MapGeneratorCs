@@ -20,22 +20,28 @@ namespace MapGeneratorCs
         private Dictionary<(int x, int y), Node> Nodes
             = new Dictionary<(int x, int y), Node>();
 
-        public MapConstructor(int length, int thickness)
+        public MapConstructor(
+            int length, int thickness,
+            int enemyFactor, int landmarkFactor, int treasureFactor,
+            bool isBoss, bool isQuest)
         {
+            // Initialize parameters
             this.length = length;
             this.seed = Random.Shared.Next();
             this.thickness = thickness;
             this.padding = thickness + 1;
 
+            // Add spawn types based on factors
+            var spawns = new List<TileSpawnType>();
+            for (int i = 0; i < enemyFactor; i++) spawns.Add(TileSpawnType.EnemySpawn);
+            for (int i = 0; i < landmarkFactor; i++) spawns.Add(TileSpawnType.Landmark);
+            for (int i = 0; i < treasureFactor; i++) spawns.Add(TileSpawnType.Treasure);
+            if (isBoss) spawns.Add(TileSpawnType.BossSpawn);
+            if (isQuest) spawns.Add(TileSpawnType.Quest);
+
+            // Generate the map
             GenerateNodes();
-            FillNodeTypes(new List<TileSpawnType>
-            {
-                TileSpawnType.Treasure,
-                TileSpawnType.EnemySpawn,
-                TileSpawnType.Landmark,
-                TileSpawnType.BossSpawn,
-                TileSpawnType.Quest
-            }, 4);
+            FillNodeTypes(spawns, 4);
             ConvertToImage("map_output.png");
         }
 
@@ -98,7 +104,22 @@ namespace MapGeneratorCs
             Console.WriteLine("Converting to Map...");
             foreach (var point in Nodes)
             {
+                // Add thickness around node
                 var (x, y) = point.Key;
+                for (int dx = -thickness; dx <= thickness; dx++)
+                {
+                    for (int dy = -thickness; dy <= thickness; dy++)
+                    {
+                        int distSq = dx * dx + dy * dy;
+                        if (distSq <= thickness * thickness)
+                        {
+                            if (map[bounds.bottomRight.x - x + padding + dx, bounds.bottomRight.y - y + padding + dy] == (int)TileSpawnType.Empty)
+                            map[bounds.bottomRight.x - x + padding + dx, bounds.bottomRight.y - y + padding + dy] = (int)TileSpawnType.None;
+                        }
+                    }
+                }
+
+                // Add main node
                 map[bounds.bottomRight.x - x + padding, bounds.bottomRight.y - y + padding] = (int)point.Value.spawnType;
             }
 
@@ -158,7 +179,7 @@ namespace MapGeneratorCs
             return false;
         }
 
-        private void FillNodeTypes(List<TileSpawnType> typesToFill, int collisionRadius = 4)
+        private void FillNodeTypes(List<TileSpawnType> typesToFill, int collisionRadius)
         {
             Console.WriteLine("Filling Node Types...");
             var random = new Random(seed);
@@ -199,32 +220,6 @@ namespace MapGeneratorCs
                 if (importantTypes.Contains(node.spawnType))
                 {
                     importantTypes.Remove(node.spawnType);
-                }
-            }
-
-            // Try to assign remaining important types
-            var retries = 0;
-            while (importantTypes.Count > 0)
-            {
-                retries++;
-                if (retries > 1000)
-                    throw new InvalidOperationException("Failed to assign important node types after 1000 retries.");
-                var randomNodeKey = new List<(int x, int y)>(Nodes.Keys)[random.Next(Nodes.Count)];
-                var randomNode = Nodes[randomNodeKey];
-
-                if (randomNode.spawnType == TileSpawnType.None
-                || randomNode.spawnType == TileSpawnType.Start
-                || randomNode.spawnType == TileSpawnType.End)
-                    continue;
-                
-                int index = random.Next(importantTypes.Count);
-                TileSpawnType typeToAssign = importantTypes[index];
-
-                if (!IsNodesRadiusOccupied(randomNode.position, collisionRadius))
-                {
-                    keysToUpdate.Add(randomNodeKey);
-                    Nodes[randomNodeKey] = new Node { position = randomNode.position, spawnType = typeToAssign };
-                    importantTypes.RemoveAt(index);
                 }
             }
         }
