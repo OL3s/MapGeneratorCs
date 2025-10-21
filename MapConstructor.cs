@@ -10,6 +10,7 @@ namespace MapGeneratorCs
     class MapConstructor
     {
         // Internal state
+        private static bool ENABLE_DETAILED_LOGGING = false;
         private ((int x, int y) topLeft, (int x, int y) bottomRight) bounds = ((0, 0), (0, 0));
         private (int width, int height) mapSize => (bounds.bottomRight.x - bounds.topLeft.x + 1,
                                                   bounds.bottomRight.y - bounds.topLeft.y + 1);
@@ -65,7 +66,8 @@ namespace MapGeneratorCs
                     else if (isEnd) Nodes[currentPosition] = new Node { position = currentPosition, spawnType = TileSpawnType.End };
                     else Nodes[currentPosition] = new Node { position = currentPosition, spawnType = TileSpawnType.None };
 
-                    Console.WriteLine($"Added node at {currentPosition.x}, {currentPosition.y} (total {Nodes.Count}/{length})");
+                    if (ENABLE_DETAILED_LOGGING)
+                        Console.WriteLine($"Added node at {currentPosition.x}, {currentPosition.y} (total {Nodes.Count}/{length})");
                 }
 
                 var directions = new List<(int x, int y)> { (1, 0), (-1, 0), (0, 1), (0, -1) };
@@ -92,7 +94,8 @@ namespace MapGeneratorCs
             foreach (var node in Nodes.Values)
             {
                 counter.i++;
-                Console.WriteLine($"Updating bounds with node at {node.position} ({counter.i}/{counter.n})");
+                if (ENABLE_DETAILED_LOGGING)
+                    Console.WriteLine($"Updating bounds with node at {node.position} ({counter.i}/{counter.n})");
                 if (node.position.x < bounds.topLeft.x) bounds.topLeft.x = node.position.x;
                 if (node.position.y < bounds.topLeft.y) bounds.topLeft.y = node.position.y;
                 if (node.position.x > bounds.bottomRight.x) bounds.bottomRight.x = node.position.x;
@@ -113,7 +116,8 @@ namespace MapGeneratorCs
             foreach (var point in Nodes)
             {
                 counter.i++;
-                Console.WriteLine($"Adding node at {point.Key} to map ({counter.i}/{counter.n})");
+                if (ENABLE_DETAILED_LOGGING)
+                    Console.WriteLine($"Adding node at {point.Key} to map ({counter.i}/{counter.n})");
                 // Add thickness around node
                 var (x, y) = point.Key;
                 for (int dx = -thickness; dx <= thickness; dx++)
@@ -150,7 +154,8 @@ namespace MapGeneratorCs
                     for (int y = 0; y < map.GetLength(1); y++)
                     {
                         counter.i++;
-                        Console.WriteLine($"Setting pixel at ({x}, {y}) ({counter.i}/{counter.n})");
+                        if (ENABLE_DETAILED_LOGGING)
+                            Console.WriteLine($"Setting pixel at ({x}, {y}) ({counter.i}/{counter.n})");
                         image[x, y] = GetColorForTileType(map[x, y]);
                     }
                 }
@@ -165,11 +170,16 @@ namespace MapGeneratorCs
         {
             var nodesInRadius = new Dictionary<(int x, int y), Node>();
 
-            foreach (var node in Nodes.Values)
+            // Instead of scanning all Nodes, probe the neighborhood using TryGetValue.
+            for (int dx = -radius; dx <= radius; dx++)
             {
-                if (Math.Abs(node.position.x - center.x) <= radius && Math.Abs(node.position.y - center.y) <= radius)
+                for (int dy = -radius; dy <= radius; dy++)
                 {
-                    nodesInRadius.Add(node.position, node);
+                    var p = (center.x + dx, center.y + dy);
+                    if (Nodes.TryGetValue(p, out var node))
+                    {
+                        nodesInRadius.Add(p, node);
+                    }
                 }
             }
 
@@ -179,16 +189,20 @@ namespace MapGeneratorCs
         // Checks if any nodes within a radius are occupied (not None)
         private bool IsNodesRadiusOccupied((int x, int y) position, int radius, bool includeTypeNone = false)
         {
-            var nodesInRadius = GetNodesInRadius(position, radius);
-
-            foreach (var node in nodesInRadius.Values)
+            // Probe only the local neighborhood -> O((2r+1)^2) work instead of O(N)
+            for (int dx = -radius; dx <= radius; dx++)
             {
-                if (!includeTypeNone && node.spawnType == TileSpawnType.None)
-                    continue;
-
-                return true;
+                for (int dy = -radius; dy <= radius; dy++)
+                {
+                    var p = (position.x + dx, position.y + dy);
+                    if (Nodes.TryGetValue(p, out var node))
+                    {
+                        if (!includeTypeNone && node.spawnType == TileSpawnType.None)
+                            continue;
+                        return true;
+                    }
+                }
             }
-
             return false;
         }
 
@@ -200,77 +214,87 @@ namespace MapGeneratorCs
 
             var keysToUpdate = new List<(int x, int y)>();
 
-            // Fill empty nodes
-            (int i, int n) counter = (0, Nodes.Count);
+            // Build list of empty node keys to consider once and shuffle it
+            var emptyKeys = new List<(int x, int y)>();
             foreach (var kvp in Nodes)
+                if (kvp.Value.spawnType == TileSpawnType.None)
+                    emptyKeys.Add(kvp.Key);
+
+            // shuffle
+            for (int i = 0; i < emptyKeys.Count; i++)
             {
-                counter.i++;
-                Console.WriteLine($"Filling node at {kvp.Key} ({counter.i}/{counter.n})");
-                var node = kvp.Value;
-                // Skip if already assigned
-                if (node.spawnType != TileSpawnType.None)
+                int j = random.Next(i, emptyKeys.Count);
+                var tmp = emptyKeys[i]; emptyKeys[i] = emptyKeys[j]; emptyKeys[j] = tmp;
+            }
+
+            // Assign regular types, respecting collision radius
+            foreach (var key in emptyKeys)
+            {
+                if (typesToFill.Count == 0) break;
+                var node = Nodes[key];
+
+                if (IsNodesRadiusOccupied(node.position, collisionRadius))
                     continue;
 
-                // Select random type from typesToFill
+                // pick a random type
                 int index = random.Next(typesToFill.Count);
                 TileSpawnType typeToAssign = typesToFill[index];
 
-                // remove is special type
-                if (typeToAssign == TileSpawnType.BossSpawn
-                || typeToAssign == TileSpawnType.Quest)
+                // if it's special, remove it from the pool (we still place it now)
+                if (typeToAssign == TileSpawnType.BossSpawn || typeToAssign == TileSpawnType.Quest)
                     typesToFill.RemoveAt(index);
 
-                if (!IsNodesRadiusOccupied(node.position, collisionRadius))
-                {
-                    keysToUpdate.Add(kvp.Key);
-                    Nodes[kvp.Key] = new Node { position = node.position, spawnType = typeToAssign };
-                }
+                keysToUpdate.Add(key);
+                Nodes[key] = new Node { position = node.position, spawnType = typeToAssign };
             }
 
             // --- Ensure important types are assigned ---
             var importantTypes = new List<TileSpawnType> { TileSpawnType.BossSpawn, TileSpawnType.Quest };
 
             // Remove already assigned important types
-            counter = (0, Nodes.Count);
+            foreach (var kvp in Nodes)
+                if (importantTypes.Contains(kvp.Value.spawnType))
+                    importantTypes.Remove(kvp.Value.spawnType);
+
+            if (importantTypes.Count == 0) return;
+
+            // Try to place remaining important types: prefer empty, then any non Start/End
+            var candidateKeys = new List<(int x, int y)>();
             foreach (var kvp in Nodes)
             {
-                counter.i++;
-                Console.WriteLine($"Checking important types at {kvp.Key} ({counter.i}/{counter.n})");
-                var node = kvp.Value;
-                if (importantTypes.Contains(node.spawnType))
+                if (kvp.Value.spawnType == TileSpawnType.None)
+                    candidateKeys.Add(kvp.Key);
+            }
+            if (candidateKeys.Count == 0)
+            {
+                foreach (var kvp in Nodes)
                 {
-                    importantTypes.Remove(node.spawnType);
+                    if (kvp.Value.spawnType != TileSpawnType.Start && kvp.Value.spawnType != TileSpawnType.End)
+                        candidateKeys.Add(kvp.Key);
                 }
             }
 
-            // Try to assign remaining important types override random nodes (not Start/End/Important)
-            if (importantTypes.Count != 0) Console.WriteLine("Missing important types found, filling now...");
-
-            counter = (0, importantTypes.Count);
-            foreach (var type in importantTypes)
+            // shuffle candidates
+            for (int i = 0; i < candidateKeys.Count; i++)
             {
-                // Find candidate nodes: not Start, End, or any important type
-                counter.i++;
-                Console.WriteLine($"Filling important type {type} ({counter.i}/{counter.n})");
-                var candidates = new List<(int x, int y)>();
-                foreach (var kvp in Nodes)
-                {
-                    var node = kvp.Value;
-                    if (node.spawnType != TileSpawnType.Start &&
-                        node.spawnType != TileSpawnType.End &&
-                        node.spawnType != TileSpawnType.None &&
-                        !importantTypes.Contains(node.spawnType))
-                    {
-                        candidates.Add(kvp.Key);
-                    }
-                }
+                int j = random.Next(i, candidateKeys.Count);
+                var tmp = candidateKeys[i]; candidateKeys[i] = candidateKeys[j]; candidateKeys[j] = tmp;
+            }
 
-                if (candidates.Count > 0)
+            foreach (var type in new List<TileSpawnType>(importantTypes))
+            {
+                bool placed = false;
+                foreach (var key in candidateKeys)
                 {
-                    int idx = random.Next(candidates.Count);
-                    var pos = candidates[idx];
-                    Nodes[pos] = new Node { position = pos, spawnType = type };
+                    var node = Nodes[key];
+                    if (IsNodesRadiusOccupied(node.position, collisionRadius)) continue;
+
+                    Nodes[key] = new Node { position = node.position, spawnType = type };
+                    placed = true;
+                    break;
                 }
+                if (!placed)
+                    Console.WriteLine($"Warning: couldn't place important type {type} due to collisions.");
             }
         }
 
