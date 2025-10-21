@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Formats.Png;
+using System.Diagnostics.Metrics;
 
 namespace MapGeneratorCs
 {
@@ -20,6 +21,7 @@ namespace MapGeneratorCs
         private Dictionary<(int x, int y), Node> Nodes
             = new Dictionary<(int x, int y), Node>();
 
+        // Constructor with initialization
         public MapConstructor(
             int length, int thickness,
             int enemyFactor, int landmarkFactor, int treasureFactor,
@@ -45,6 +47,7 @@ namespace MapGeneratorCs
             ConvertToImage("map_output.png");
         }
 
+        // Generates nodes in a random walk fashion
         private void GenerateNodes()
         {
             Console.WriteLine("Generating Nodes...");
@@ -65,7 +68,7 @@ namespace MapGeneratorCs
                     Console.WriteLine($"Added node at {currentPosition.x}, {currentPosition.y} (total {Nodes.Count}/{length})");
                 }
 
-                var directions = new List<(int x, int y)> {  (1, 0), (-1, 0), (0, 1), (0, -1) };
+                var directions = new List<(int x, int y)> { (1, 0), (-1, 0), (0, 1), (0, -1) };
                 var dir = directions[random.Next(directions.Count)];
 
 
@@ -85,25 +88,32 @@ namespace MapGeneratorCs
             if (Nodes.Count == 0 || Nodes == null)
                 throw new InvalidOperationException("No nodes to update bounds.");
 
-
+            (int i, int n) counter = (0, Nodes.Count);
             foreach (var node in Nodes.Values)
             {
+                counter.i++;
+                Console.WriteLine($"Updating bounds with node at {node.position} ({counter.i}/{counter.n})");
                 if (node.position.x < bounds.topLeft.x) bounds.topLeft.x = node.position.x;
                 if (node.position.y < bounds.topLeft.y) bounds.topLeft.y = node.position.y;
                 if (node.position.x > bounds.bottomRight.x) bounds.bottomRight.x = node.position.x;
                 if (node.position.y > bounds.bottomRight.y) bounds.bottomRight.y = node.position.y;
             }
         }
+
+        // Converts the nodes to a 2D map array
         private int[,] ConvertToMap(Dictionary<(int, int), Node> Nodes)
         {
-            if (Nodes.Count == 0 || length <= 0 || Nodes == null) 
+            if (Nodes.Count == 0 || length <= 0 || Nodes == null)
                 throw new InvalidOperationException("No nodes to convert to map.");
 
             UpdateBounds();
             int[,] map = new int[mapSize.width + padding * 2, mapSize.height + padding * 2];
             Console.WriteLine("Converting to Map...");
+            (int i, int n) counter = (0, Nodes.Count);
             foreach (var point in Nodes)
             {
+                counter.i++;
+                Console.WriteLine($"Adding node at {point.Key} to map ({counter.i}/{counter.n})");
                 // Add thickness around node
                 var (x, y) = point.Key;
                 for (int dx = -thickness; dx <= thickness; dx++)
@@ -114,7 +124,7 @@ namespace MapGeneratorCs
                         if (distSq <= thickness * thickness)
                         {
                             if (map[bounds.bottomRight.x - x + padding + dx, bounds.bottomRight.y - y + padding + dy] == (int)TileSpawnType.Empty)
-                            map[bounds.bottomRight.x - x + padding + dx, bounds.bottomRight.y - y + padding + dy] = (int)TileSpawnType.None;
+                                map[bounds.bottomRight.x - x + padding + dx, bounds.bottomRight.y - y + padding + dy] = (int)TileSpawnType.None;
                         }
                     }
                 }
@@ -125,20 +135,22 @@ namespace MapGeneratorCs
 
             return map;
         }
+
+        // Converts the map int[,] to an image and saves it
         public void ConvertToImage(string filePath)
         {
             int[,] map = ConvertToMap(Nodes);
 
             Console.WriteLine("Converting to Image...");
+            (int i, int n) counter = (0, map.GetLength(0) * map.GetLength(1));
             using (var image = new Image<Rgba32>(map.GetLength(0), map.GetLength(1)))
             {
                 for (int x = 0; x < map.GetLength(0); x++)
                 {
                     for (int y = 0; y < map.GetLength(1); y++)
                     {
-                        
-                        // Set pixel color based on map value
-                        //image[x, y] = map[x, y] == 1 ? Color.Black : Color.White;
+                        counter.i++;
+                        Console.WriteLine($"Setting pixel at ({x}, {y}) ({counter.i}/{counter.n})");
                         image[x, y] = GetColorForTileType(map[x, y]);
                     }
                 }
@@ -148,9 +160,9 @@ namespace MapGeneratorCs
             }
         }
 
-        public Dictionary<(int x, int y), Node> GetNodesInRadius((int x, int y) center, int radius)
+        // Gets all nodes within a certain radius of a position
+        private Dictionary<(int x, int y), Node> GetNodesInRadius((int x, int y) center, int radius)
         {
-            Console.WriteLine($"Getting nodes in radius {radius} around {center.x}, {center.y}");
             var nodesInRadius = new Dictionary<(int x, int y), Node>();
 
             foreach (var node in Nodes.Values)
@@ -164,6 +176,7 @@ namespace MapGeneratorCs
             return nodesInRadius;
         }
 
+        // Checks if any nodes within a radius are occupied (not None)
         private bool IsNodesRadiusOccupied((int x, int y) position, int radius, bool includeTypeNone = false)
         {
             var nodesInRadius = GetNodesInRadius(position, radius);
@@ -179,6 +192,7 @@ namespace MapGeneratorCs
             return false;
         }
 
+        // Fills node types based on available types and collision radius
         private void FillNodeTypes(List<TileSpawnType> typesToFill, int collisionRadius)
         {
             Console.WriteLine("Filling Node Types...");
@@ -187,8 +201,11 @@ namespace MapGeneratorCs
             var keysToUpdate = new List<(int x, int y)>();
 
             // Fill empty nodes
+            (int i, int n) counter = (0, Nodes.Count);
             foreach (var kvp in Nodes)
             {
+                counter.i++;
+                Console.WriteLine($"Filling node at {kvp.Key} ({counter.i}/{counter.n})");
                 var node = kvp.Value;
                 // Skip if already assigned
                 if (node.spawnType != TileSpawnType.None)
@@ -214,12 +231,45 @@ namespace MapGeneratorCs
             var importantTypes = new List<TileSpawnType> { TileSpawnType.BossSpawn, TileSpawnType.Quest };
 
             // Remove already assigned important types
+            counter = (0, Nodes.Count);
             foreach (var kvp in Nodes)
             {
+                counter.i++;
+                Console.WriteLine($"Checking important types at {kvp.Key} ({counter.i}/{counter.n})");
                 var node = kvp.Value;
                 if (importantTypes.Contains(node.spawnType))
                 {
                     importantTypes.Remove(node.spawnType);
+                }
+            }
+
+            // Try to assign remaining important types override random nodes (not Start/End/Important)
+            if (importantTypes.Count != 0) Console.WriteLine("Missing important types found, filling now...");
+
+            counter = (0, importantTypes.Count);
+            foreach (var type in importantTypes)
+            {
+                // Find candidate nodes: not Start, End, or any important type
+                counter.i++;
+                Console.WriteLine($"Filling important type {type} ({counter.i}/{counter.n})");
+                var candidates = new List<(int x, int y)>();
+                foreach (var kvp in Nodes)
+                {
+                    var node = kvp.Value;
+                    if (node.spawnType != TileSpawnType.Start &&
+                        node.spawnType != TileSpawnType.End &&
+                        node.spawnType != TileSpawnType.None &&
+                        !importantTypes.Contains(node.spawnType))
+                    {
+                        candidates.Add(kvp.Key);
+                    }
+                }
+
+                if (candidates.Count > 0)
+                {
+                    int idx = random.Next(candidates.Count);
+                    var pos = candidates[idx];
+                    Nodes[pos] = new Node { position = pos, spawnType = type };
                 }
             }
         }
