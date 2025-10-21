@@ -1,0 +1,38 @@
+# Ignore build output
+bin/
+obj/
+
+# Ignore user-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Ignore VS Code settings
+.vscode/
+
+# Ignore NuGet packages
+*.nupkg
+packages/
+.nuget/
+
+# Ignore logs
+*.log
+
+# Ignore temporary files
+*.tmp
+*.temp
+
+# Ignore OS generated files
+.DS_Store
+Thumbs.db
+
+# Ignore Rider IDE files
+.idea/
+*.sln.iml
+
+# Ignore map images
+*.png
+*.jpg
+*.jpeg
+*.gif
