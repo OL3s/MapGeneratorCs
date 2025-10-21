@@ -1,0 +1,17 @@
+/home/ole-kristian-wigum/Documents/MapGenerationCs/MapGeneratorCs/bin/Debug/net8.0/MapGeneratorCs
+/home/ole-kristian-wigum/Documents/MapGenerationCs/MapGeneratorCs/bin/Debug/net8.0/MapGeneratorCs.deps.json
+/home/ole-kristian-wigum/Documents/MapGenerationCs/MapGeneratorCs/bin/Debug/net8.0/MapGeneratorCs.runtimeconfig.json
+/home/ole-kristian-wigum/Documents/MapGenerationCs/MapGeneratorCs/bin/Debug/net8.0/MapGeneratorCs.dll
+/home/ole-kristian-wigum/Documents/MapGenerationCs/MapGeneratorCs/bin/Debug/net8.0/MapGeneratorCs.pdb
+/home/ole-kristian-wigum/Documents/MapGenerationCs/MapGeneratorCs/bin/Debug/net8.0/SixLabors.ImageSharp.dll
+/home/ole-kristian-wigum/Documents/MapGenerationCs/MapGeneratorCs/obj/Debug/net8.0/MapGeneratorCs.csproj.AssemblyReference.cache
+/home/ole-kristian-wigum/Documents/MapGenerationCs/MapGeneratorCs/obj/Debug/net8.0/MapGeneratorCs.GeneratedMSBuildEditorConfig.editorconfig
+/home/ole-kristian-wigum/Documents/MapGenerationCs/MapGeneratorCs/obj/Debug/net8.0/MapGeneratorCs.AssemblyInfoInputs.cache
+/home/ole-kristian-wigum/Documents/MapGenerationCs/MapGeneratorCs/obj/Debug/net8.0/MapGeneratorCs.AssemblyInfo.cs
+/home/ole-kristian-wigum/Documents/MapGenerationCs/MapGeneratorCs/obj/Debug/net8.0/MapGeneratorCs.csproj.CoreCompileInputs.cache
+/home/ole-kristian-wigum/Documents/MapGenerationCs/MapGeneratorCs/obj/Debug/net8.0/MapGeneratorCs.csproj.CopyComplete
+/home/ole-kristian-wigum/Documents/MapGenerationCs/MapGeneratorCs/obj/Debug/net8.0/MapGeneratorCs.dll
+/home/ole-kristian-wigum/Documents/MapGenerationCs/MapGeneratorCs/obj/Debug/net8.0/refint/MapGeneratorCs.dll
+/home/ole-kristian-wigum/Documents/MapGenerationCs/MapGeneratorCs/obj/Debug/net8.0/MapGeneratorCs.pdb
+/home/ole-kristian-wigum/Documents/MapGenerationCs/MapGeneratorCs/obj/Debug/net8.0/MapGeneratorCs.genruntimeconfig.cache
+/home/ole-kristian-wigum/Documents/MapGenerationCs/MapGeneratorCs/obj/Debug/net8.0/ref/MapGeneratorCs.dll

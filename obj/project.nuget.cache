@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "wwz2cn1d3UPp+nnR2wdI5fZaF20yfxyCy3Ih/GbJ0ooBtbvnhYn86/0+SIG2+6ang6ari4W41TG0hwuc9l3CRQ==",
+  "success": true,
+  "projectFilePath": "/home/ole-kristian-wigum/Documents/MapGenerationCs/MapGeneratorCs/MapGeneratorCs.csproj",
+  "expectedPackageFiles": [
+    "/home/ole-kristian-wigum/.nuget/packages/sixlabors.imagesharp/3.1.11/sixlabors.imagesharp.3.1.11.nupkg.sha512"
+  ],
+  "logs": []
+}
