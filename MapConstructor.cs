@@ -64,7 +64,7 @@ namespace MapGeneratorCs
                 {
                     if (isStart) Nodes[currentPosition] = new Node { position = currentPosition, spawnType = TileSpawnType.Start };
                     else if (isEnd) Nodes[currentPosition] = new Node { position = currentPosition, spawnType = TileSpawnType.End };
-                    else Nodes[currentPosition] = new Node { position = currentPosition, spawnType = TileSpawnType.None };
+                    else Nodes[currentPosition] = new Node { position = currentPosition, spawnType = TileSpawnType.Default };
 
                     if (ENABLE_DETAILED_LOGGING)
                         Console.WriteLine($"Added node at {currentPosition.x}, {currentPosition.y} (total {Nodes.Count}/{length})");
@@ -111,6 +111,12 @@ namespace MapGeneratorCs
 
             UpdateBounds();
             int[,] map = new int[mapSize.width + padding * 2, mapSize.height + padding * 2];
+
+            // Fill map with Empty
+            for (int x = 0; x < map.GetLength(0); x++)
+                for (int y = 0; y < map.GetLength(1); y++)
+                    map[x, y] = (int)TileSpawnType.Empty;
+
             Console.WriteLine("Converting to Map...");
             (int i, int n) counter = (0, Nodes.Count);
             foreach (var point in Nodes)
@@ -128,7 +134,7 @@ namespace MapGeneratorCs
                         if (distSq <= thickness * thickness)
                         {
                             if (map[bounds.bottomRight.x - x + padding + dx, bounds.bottomRight.y - y + padding + dy] == (int)TileSpawnType.Empty)
-                                map[bounds.bottomRight.x - x + padding + dx, bounds.bottomRight.y - y + padding + dy] = (int)TileSpawnType.None;
+                                map[bounds.bottomRight.x - x + padding + dx, bounds.bottomRight.y - y + padding + dy] = (int)TileSpawnType.Default;
                         }
                     }
                 }
@@ -197,7 +203,7 @@ namespace MapGeneratorCs
                     var p = (position.x + dx, position.y + dy);
                     if (Nodes.TryGetValue(p, out var node))
                     {
-                        if (!includeTypeNone && node.spawnType == TileSpawnType.None)
+                        if (!includeTypeNone && node.spawnType == TileSpawnType.Default)
                             continue;
                         return true;
                     }
@@ -217,7 +223,7 @@ namespace MapGeneratorCs
             // Build list of empty node keys to consider once and shuffle it
             var emptyKeys = new List<(int x, int y)>();
             foreach (var kvp in Nodes)
-                if (kvp.Value.spawnType == TileSpawnType.None)
+                if (kvp.Value.spawnType == TileSpawnType.Default)
                     emptyKeys.Add(kvp.Key);
 
             // shuffle
@@ -262,7 +268,7 @@ namespace MapGeneratorCs
             var candidateKeys = new List<(int x, int y)>();
             foreach (var kvp in Nodes)
             {
-                if (kvp.Value.spawnType == TileSpawnType.None)
+                if (kvp.Value.spawnType == TileSpawnType.Default)
                     candidateKeys.Add(kvp.Key);
             }
             if (candidateKeys.Count == 0)
@@ -302,7 +308,8 @@ namespace MapGeneratorCs
         {
             return type switch
             {
-                (int)TileSpawnType.None => Color.Gray,
+                (int)TileSpawnType.Empty => Color.Black,
+                (int)TileSpawnType.Default => Color.Gray,
                 (int)TileSpawnType.Start => Color.Green,
                 (int)TileSpawnType.End => Color.Red,
                 (int)TileSpawnType.Treasure => Color.Gold,
@@ -321,26 +328,15 @@ namespace MapGeneratorCs
 
         public enum TileSpawnType
         {
-            Empty,
-            Start,
-            End,
-            Treasure,
-            EnemySpawn,
-            Landmark,
-            BossSpawn,
-            Quest,
-            None
-        }
-
-        enum TerrainType
-        {
-            Wall,
-            Path,
-            Floor,
-            Water,
-            Nature,
-            Lava,
-            Bridge,
+            Empty = -1,
+            Default = 0,
+            Start = 1,
+            End = 2,
+            Treasure = 3,
+            EnemySpawn = 4,
+            Landmark = 5,
+            BossSpawn = 6,
+            Quest = 7,
         }
         public struct Node 
         {
