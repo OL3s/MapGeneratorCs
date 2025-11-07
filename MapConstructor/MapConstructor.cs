@@ -96,7 +96,6 @@ namespace MapGeneratorCs
         internal (int enemy, int landmark, int treasure, int _default, int empty) SpawnFactor => spawnFactor;
         internal int[,]? Grid => TileMap2D;
         internal ref (int x, int y) CurrentPos => ref currentPosition;
-
         internal bool Verbose => ENABLE_DETAILED_LOGGING;
     }
 }
