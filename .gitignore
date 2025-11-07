@@ -1,6 +1,7 @@
 # Ignore build output
 bin/
 obj/
+export/
 
 # Ignore user-specific files
 *.user
