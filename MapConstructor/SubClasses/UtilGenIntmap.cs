@@ -49,7 +49,7 @@ namespace MapGeneratorCs
             public static void SaveToImage(MapConstructor map, string filePath)
             {
                 if (map.Grid == null)
-                    throw new InvalidOperationException("TileMap2D is null. Build map first.");
+                    throw new InvalidOperationException("TileMap2D is null. Build map first.\n  ");
 
                 int w = map.Grid.GetLength(0);
                 int h = map.Grid.GetLength(1);
