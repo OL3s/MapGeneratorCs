@@ -14,6 +14,9 @@ namespace MapGeneratorCs
                 if (map.NodeContainer.NodesFloor == null || map.NodeContainer.NodesFloor.Count == 0 || map.Length <= 0)
                     throw new InvalidOperationException("No NodesFloor to convert to map.");
 
+                if (map.TileMap2D != null)
+                    throw new InvalidOperationException("TileMap2D has already been built.");
+
                 int maxX = 0, maxY = 0;
                 foreach (var p in map.NodeContainer.NodesFloor)
                 {

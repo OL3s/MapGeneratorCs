@@ -62,11 +62,9 @@ namespace MapGeneratorCs
                 NodesGenerate = new Dictionary<(int x, int y), TileSpawnType>(),
                 NodesObjects = new Dictionary<(int x, int y), TileSpawnType>()
             };
-
-            GenerateMap();
         }
 
-        private void GenerateMap()
+        public void GenerateMap()
         {
             Console.WriteLine("Starting Map Generation...\n");
 
@@ -82,9 +80,22 @@ namespace MapGeneratorCs
                 + $"Object nodes          {NodeContainer.NodesObjects.Count,6} stk\n"
                 + $"Generation time       {stopwatch.ElapsedMilliseconds,6} .ms\n");
 
-            IntMapBuilder.BuildFromNodes(this);
-            IntMapBuilder.SaveToImage(this, "export/map_output.png");
         }
+
+        public void SaveMapAsImage(string filePath)
+        {
+            try
+            {
+                IntMapBuilder.BuildFromNodes(this);
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Error building IntMap2D: {ex.Message}");
+                return;
+            }
+            IntMapBuilder.SaveToImage(this, filePath);
+        }
+        
 
         // Expose internals to helper classes
         internal Random RNG => random;

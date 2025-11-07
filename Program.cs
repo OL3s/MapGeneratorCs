@@ -22,6 +22,9 @@ namespace MapGeneratorCs
                 ),
                 enableDetailedLogging: false
             );
+
+            map.GenerateMap();
+            map.SaveMapAsImage("generated_map.png");
         }
     }
 }
