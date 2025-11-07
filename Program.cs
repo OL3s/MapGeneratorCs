@@ -1,5 +1,4 @@
 ﻿// File: Program.cs
-using System;
 
 namespace MapGeneratorCs
 {
@@ -7,8 +6,22 @@ namespace MapGeneratorCs
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Map Generator Started");
-            new MapConstructor(1000, 1, 3, 1, 2, true, true);
+            var map = new MapConstructor(
+                length: 1_000,
+                thickness: 1,
+                collisionRadius: 3,
+                seed: new Random().Next(),
+                spawnFactors: (
+                    enemyFactor: 2,
+                    landmarkFactor: 1,
+                    treasureFactor: 1,
+                    emptyFactor: 1,
+                    defaultFactor: 1,
+                    isBoss: true,
+                    isQuest: true
+                ),
+                enableDetailedLogging: false
+            );
         }
     }
 }
