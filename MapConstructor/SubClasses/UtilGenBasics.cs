@@ -15,7 +15,6 @@ namespace MapGeneratorCs
                     return;
                 }
 
-                Console.WriteLine("Generating NodeContainer.NodesFloor...");
                 map.CurrentPos = (0, 0);
                 int hitFloorCount = 0;
 
@@ -113,16 +112,16 @@ namespace MapGeneratorCs
 
             private static TileSpawnType GetRandomSpawnTypeFromSpawnFactors(MapConstructor map)
             {
-                int total = map.SpawnFactor.enemy + map.SpawnFactor.landmark + map.SpawnFactor.treasure
-                            + map.SpawnFactor.empty + map.SpawnFactor._default + map.SpawnFactor.trap;
+                int total = map.spawnFactor.enemy + map.spawnFactor.landmark + map.spawnFactor.treasure
+                            + map.spawnFactor.empty + map.spawnFactor._default + map.spawnFactor.trap;
                 int roll = map.RNG.Next(1, total + 1), cum = 0;
 
-                if ((cum += map.SpawnFactor.enemy) >= roll) return TileSpawnType.EnemyGenerator;
-                if ((cum += map.SpawnFactor.landmark) >= roll) return TileSpawnType.LandmarkGenerator;
-                if ((cum += map.SpawnFactor.treasure) >= roll) return TileSpawnType.TreasureGenerator;
-                if ((cum += map.SpawnFactor.empty) >= roll) return TileSpawnType.EmptyGenerator;
-                if ((cum += map.SpawnFactor._default) >= roll) return TileSpawnType.DefaultGenerator;
-                if ((cum += map.SpawnFactor.trap) >= roll) return TileSpawnType.TrapGenerator;
+                if ((cum += map.spawnFactor.enemy) >= roll) return TileSpawnType.EnemyGenerator;
+                if ((cum += map.spawnFactor.landmark) >= roll) return TileSpawnType.LandmarkGenerator;
+                if ((cum += map.spawnFactor.treasure) >= roll) return TileSpawnType.TreasureGenerator;
+                if ((cum += map.spawnFactor.empty) >= roll) return TileSpawnType.EmptyGenerator;
+                if ((cum += map.spawnFactor._default) >= roll) return TileSpawnType.DefaultGenerator;
+                if ((cum += map.spawnFactor.trap) >= roll) return TileSpawnType.TrapGenerator;
                 return TileSpawnType.Default;
             }
 

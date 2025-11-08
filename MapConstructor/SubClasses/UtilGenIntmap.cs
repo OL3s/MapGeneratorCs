@@ -50,7 +50,7 @@ namespace MapGeneratorCs
                 }
             }
 
-            public static void SaveToImage(MapConstructor map, string filePath)
+            public static void SaveToImage(MapConstructor map, string filePath, bool includeGenerateNodes = false)
             {
                 if (map.Grid == null)
                     throw new InvalidOperationException("TileMap2D is null. Build map first.\n  ");
@@ -67,6 +67,19 @@ namespace MapGeneratorCs
                         var tileType = (TileSpawnType)map.Grid[x, y];
                         if (tileType == TileSpawnType.Empty)
                             continue;
+
+                        // includeGenerateNodes flag check
+                        if (!includeGenerateNodes &&
+                            (tileType == TileSpawnType.DefaultGenerator ||
+                             tileType == TileSpawnType.EnemyGenerator ||
+                             tileType == TileSpawnType.TreasureGenerator ||
+                             tileType == TileSpawnType.TrapGenerator ||
+                             tileType == TileSpawnType.EmptyGenerator ||
+                             tileType == TileSpawnType.LandmarkGenerator))
+                        {
+                            tileType = TileSpawnType.Default;
+                        }
+
                         image[x, y] = TileColorUtils.GetColorForTileType(tileType);
                     }
                 }
