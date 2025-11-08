@@ -13,8 +13,8 @@
             {
                 Console.WriteLine("Usage: MapGeneratorCs <length> <thickness> <collisionRadius>");
                 Console.WriteLine("  <length>            : Length of the map (default: 1000)");
-                Console.WriteLine("  <thickness>         : Thickness of the paths (default: 5)");
-                Console.WriteLine("  <collisionRadius>   : Collision radius (default: 3)");
+                Console.WriteLine("  <thickness>         : Thickness of the paths (default: 1)");
+                Console.WriteLine("  <collisionRadius>   : Collision radius (default: 5)");
                 Environment.Exit(0);
             }
 
