@@ -18,7 +18,8 @@ namespace MapGeneratorCs
             int landmark,
             int treasure,
             int _default,
-            int empty
+            int empty,
+            int trap
         ) spawnFactor;
         private (bool isBoss, bool isQuest) spawnTypeFlags;
         private int[,]? TileMap2D;
@@ -37,8 +38,7 @@ namespace MapGeneratorCs
         public MapConstructor(
             int length, int thickness, int collisionRadius, int seed,
             (int enemyFactor, int landmarkFactor, int treasureFactor, int emptyFactor, int defaultFactor,
-             bool isBoss, bool isQuest) spawnFactors,
-            bool enableDetailedLogging = true)
+                int trapFactor, bool isBoss, bool isQuest) spawnFactors, bool enableDetailedLogging = true)
         {
             this.length = length;
             this.collisionRadius = collisionRadius;
@@ -47,7 +47,8 @@ namespace MapGeneratorCs
                 spawnFactors.landmarkFactor,
                 spawnFactors.treasureFactor,
                 spawnFactors.defaultFactor,
-                spawnFactors.emptyFactor
+                spawnFactors.emptyFactor,
+                spawnFactors.trapFactor
             );
             this.Seed = seed;
             this.random = new Random(seed);
@@ -104,7 +105,7 @@ namespace MapGeneratorCs
         internal int CollisionRadius => collisionRadius;
         internal int Padding => padding;
         internal (bool isBoss, bool isQuest) SpawnTypeFlags => spawnTypeFlags;
-        internal (int enemy, int landmark, int treasure, int _default, int empty) SpawnFactor => spawnFactor;
+        internal (int enemy, int landmark, int treasure, int _default, int empty, int trap) SpawnFactor => spawnFactor;
         internal int[,]? Grid => TileMap2D;
         internal ref (int x, int y) CurrentPos => ref currentPosition;
         internal bool Verbose => ENABLE_DETAILED_LOGGING;

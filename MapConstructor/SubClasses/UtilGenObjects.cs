@@ -70,7 +70,7 @@ namespace MapGeneratorCs
 
             private static void GenerateDefaultObject(MapConstructor map, (int x, int y) position)
             {
-                int propCount = FloorTileCount(position, map.CollisionRadius, map) / 2;
+                int propCount = FloorTileCount(position, map.CollisionRadius, map) / 3;
 
                 while (propCount-- > 0)
                 {

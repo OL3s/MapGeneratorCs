@@ -15,6 +15,8 @@ namespace MapGeneratorCs
             QuestGenerator = 8,
             DefaultGenerator = 9,
             EmptyGenerator = 10,
+            TrapGenerator = 11,
+            TrapObject = 40,
             TreasureObject = 50,
             EnemyCollector = 60,
             EnemyObject = 61,
@@ -23,8 +25,8 @@ namespace MapGeneratorCs
             LandmarkObject = 70,
             QuestObject = 80,
             PropObject = 90,
-            WaterTile = 100,
-            LavaTile = 101,
+            WaterTile = 500,
+            LavaTile = 501,
         }
     }
 }

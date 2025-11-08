@@ -1,4 +1,3 @@
-using System;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Formats.Png;
@@ -34,14 +33,16 @@ namespace MapGeneratorCs
                     if (p.x >= 0 && p.x < width && p.y >= 0 && p.y < height)
                         grid[p.x, p.y] = (int)TileSpawnType.Default;
 
-                foreach (var kv in map.NodeContainer.NodesGenerate)
+                // Override with object nodes
+                foreach (var kv in map.NodeContainer.NodesObjects)
                 {
                     var p = kv.Key;
                     if (p.x >= 0 && p.x < width && p.y >= 0 && p.y < height)
                         grid[p.x, p.y] = (int)kv.Value;
                 }
 
-                foreach (var kv in map.NodeContainer.NodesObjects)
+                // Override with generate nodes
+                foreach (var kv in map.NodeContainer.NodesGenerate)
                 {
                     var p = kv.Key;
                     if (p.x >= 0 && p.x < width && p.y >= 0 && p.y < height)

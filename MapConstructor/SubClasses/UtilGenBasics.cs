@@ -84,7 +84,7 @@ namespace MapGeneratorCs
 
                 foreach (var pos in candidates)
                 {
-                    if (map.RNG.NextDouble() < 0.98) continue; // skip chance
+                    if (map.RNG.NextDouble() < 0.9) continue; // skip chance
                     if (IsGenerateNodesRadiusOccupied(map, pos, map.CollisionRadius)) continue;
 
                     var type = GetRandomSpawnTypeFromSpawnFactors(map);
@@ -114,7 +114,7 @@ namespace MapGeneratorCs
             private static TileSpawnType GetRandomSpawnTypeFromSpawnFactors(MapConstructor map)
             {
                 int total = map.SpawnFactor.enemy + map.SpawnFactor.landmark + map.SpawnFactor.treasure
-                            + map.SpawnFactor.empty + map.SpawnFactor._default;
+                            + map.SpawnFactor.empty + map.SpawnFactor._default + map.SpawnFactor.trap;
                 int roll = map.RNG.Next(1, total + 1), cum = 0;
 
                 if ((cum += map.SpawnFactor.enemy) >= roll) return TileSpawnType.EnemyGenerator;
@@ -122,6 +122,7 @@ namespace MapGeneratorCs
                 if ((cum += map.SpawnFactor.treasure) >= roll) return TileSpawnType.TreasureGenerator;
                 if ((cum += map.SpawnFactor.empty) >= roll) return TileSpawnType.EmptyGenerator;
                 if ((cum += map.SpawnFactor._default) >= roll) return TileSpawnType.DefaultGenerator;
+                if ((cum += map.SpawnFactor.trap) >= roll) return TileSpawnType.TrapGenerator;
                 return TileSpawnType.Default;
             }
 
