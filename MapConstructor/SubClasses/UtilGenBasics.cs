@@ -31,8 +31,8 @@ namespace MapGeneratorCs
                     {
                         hitFloorCount = 0;
 
-                        if (isStart) map.NodeContainer.NodesGenerate[map.CurrentPos] = TileSpawnType.Start;
-                        else if (isEnd) map.NodeContainer.NodesGenerate[map.CurrentPos] = TileSpawnType.End;
+                        if (isStart) map.NodeContainer.NodesGenerate[map.CurrentPos] = TileSpawnType.StartGenerator;
+                        else if (isEnd) map.NodeContainer.NodesGenerate[map.CurrentPos] = TileSpawnType.EndGenerator;
                         else if (isBoss) map.NodeContainer.NodesGenerate[map.CurrentPos] = TileSpawnType.BossGenerator;
                         else if (isQuest) map.NodeContainer.NodesGenerate[map.CurrentPos] = TileSpawnType.QuestGenerator;
 
@@ -112,16 +112,16 @@ namespace MapGeneratorCs
 
             private static TileSpawnType GetRandomSpawnTypeFromSpawnFactors(MapConstructor map)
             {
-                int total = map.spawnFactor.enemy + map.spawnFactor.landmark + map.spawnFactor.treasure
-                            + map.spawnFactor.empty + map.spawnFactor._default + map.spawnFactor.trap;
+                int total = map.spawnWeights.enemy + map.spawnWeights.landmark + map.spawnWeights.treasure
+                            + map.spawnWeights.empty + map.spawnWeights._default + map.spawnWeights.trap;
                 int roll = map.RNG.Next(1, total + 1), cum = 0;
 
-                if ((cum += map.spawnFactor.enemy) >= roll) return TileSpawnType.EnemyGenerator;
-                if ((cum += map.spawnFactor.landmark) >= roll) return TileSpawnType.LandmarkGenerator;
-                if ((cum += map.spawnFactor.treasure) >= roll) return TileSpawnType.TreasureGenerator;
-                if ((cum += map.spawnFactor.empty) >= roll) return TileSpawnType.EmptyGenerator;
-                if ((cum += map.spawnFactor._default) >= roll) return TileSpawnType.DefaultGenerator;
-                if ((cum += map.spawnFactor.trap) >= roll) return TileSpawnType.TrapGenerator;
+                if ((cum += map.spawnWeights.enemy) >= roll) return TileSpawnType.EnemyGenerator;
+                if ((cum += map.spawnWeights.landmark) >= roll) return TileSpawnType.LandmarkGenerator;
+                if ((cum += map.spawnWeights.treasure) >= roll) return TileSpawnType.TreasureGenerator;
+                if ((cum += map.spawnWeights.empty) >= roll) return TileSpawnType.EmptyGenerator;
+                if ((cum += map.spawnWeights._default) >= roll) return TileSpawnType.DefaultGenerator;
+                if ((cum += map.spawnWeights.trap) >= roll) return TileSpawnType.TrapGenerator;
                 return TileSpawnType.Default;
             }
 

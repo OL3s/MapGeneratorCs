@@ -6,8 +6,8 @@ namespace MapGeneratorCs
         {
             Empty = 0,
             Default = 1,
-            Start = 2,
-            End = 3,
+            StartGenerator = 2,
+            EndGenerator = 3,
             TreasureGenerator = 4,
             EnemyGenerator = 5,
             LandmarkGenerator = 6,
@@ -25,6 +25,8 @@ namespace MapGeneratorCs
             LandmarkObject = 70,
             QuestObject = 80,
             PropObject = 90,
+            StartObject = 100,
+            EndObject = 101,
             WaterTile = 500,
             LavaTile = 501,
         }

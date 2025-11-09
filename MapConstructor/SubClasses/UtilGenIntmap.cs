@@ -71,11 +71,16 @@ namespace MapGeneratorCs
                         // includeGenerateNodes flag check
                         if (!includeGenerateNodes &&
                             (tileType == TileSpawnType.DefaultGenerator ||
-                             tileType == TileSpawnType.EnemyGenerator ||
-                             tileType == TileSpawnType.TreasureGenerator ||
-                             tileType == TileSpawnType.TrapGenerator ||
-                             tileType == TileSpawnType.EmptyGenerator ||
-                             tileType == TileSpawnType.LandmarkGenerator))
+                                tileType == TileSpawnType.EnemyGenerator ||
+                                tileType == TileSpawnType.TreasureGenerator ||
+                                tileType == TileSpawnType.TrapGenerator ||
+                                tileType == TileSpawnType.EmptyGenerator ||
+                                tileType == TileSpawnType.StartGenerator ||
+                                tileType == TileSpawnType.EndGenerator ||
+                                tileType == TileSpawnType.BossGenerator ||
+                                tileType == TileSpawnType.QuestGenerator ||
+                                tileType == TileSpawnType.TrapGenerator ||
+                                tileType == TileSpawnType.LandmarkGenerator))
                         {
                             tileType = TileSpawnType.Default;
                         }
@@ -86,6 +91,17 @@ namespace MapGeneratorCs
 
                 image.Save(filePath, new PngEncoder());
                 Console.WriteLine("Map image saved successfully.");
+            }
+
+            public static void SaveToJson(MapConstructor map, string filePath)
+            {
+                if (map.Grid == null)
+                    throw new InvalidOperationException("TileMap2D is null. Build map first.\n  ");
+
+                NodeContainerData save = map.NodeContainer;
+                string json = System.Text.Json.JsonSerializer.Serialize(save, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(filePath, json);
+                Console.WriteLine($"Map saved to JSON at {filePath}");
             }
         }
     }

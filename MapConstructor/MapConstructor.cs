@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace MapGeneratorCs
 {
@@ -8,12 +9,8 @@ namespace MapGeneratorCs
     {
         private readonly bool ENABLE_DETAILED_LOGGING;
         private (int x, int y) currentPosition;
-        public int Seed { get; private set; }
         private Random random;
-        private int length;
-        private int thickness;
-        private int collisionRadius;
-        public struct SpawnFactors
+        public struct SpawnWeights
         {
             public int enemy { get; set; }
             public int landmark { get; set; }
@@ -23,32 +20,53 @@ namespace MapGeneratorCs
             public int trap { get; set; }
             public int props { get; set; }
         }
-        SpawnFactors spawnFactor;
-        private (bool isBoss, bool isQuest) spawnTypeFlags;
+        private SpawnWeights spawnWeights;
+        public struct MapWeights
+        {
+
+            public int Length { get; set; } = 1000;
+            public int CollisionRadius { get; set; } = 5;
+            public int Thickness { get; set; } = 1;
+            public int? Seed { get; set; } = null;
+            public bool FlagBoss { get; set; } = true;
+            public bool FlagQuest { get; set; } = true;
+            public MapWeights() { }
+        }
+        private MapWeights mapWeights;
         private int[,]? TileMap2D;
         private int padding = 1;
 
-        internal struct NodeContainerData
+        public class NodeContainerData
         {
-            public HashSet<(int x, int y)> NodesFloor;
-            public HashSet<(int x, int y)> NodesFloorRaw;
-            public Dictionary<(int x, int y), TileSpawnType> NodesGenerate;
-            public Dictionary<(int x, int y), TileSpawnType> NodesObjects;
-        };
+            [JsonInclude]
+            public HashSet<(int x, int y)> NodesFloor { get; set; } = new();
+            [JsonInclude]
+            public HashSet<(int x, int y)> NodesFloorRaw { get; set; } = new();
+            [JsonInclude]
+            public Dictionary<(int x, int y), TileSpawnType> NodesGenerate { get; set; } = new();
+            [JsonInclude]
+            public Dictionary<(int x, int y), TileSpawnType> NodesObjects { get; set; } = new();
+        }
 
-        internal NodeContainerData NodeContainer;
-
-        public MapConstructor(
-            int length, int thickness, int collisionRadius, int seed,
-            (bool isBoss, bool isQuest) flags, bool enableDetailedLogging = true)
+        public NodeContainerData NodeContainer;
+        public struct Vect2D
         {
-            this.length = length;
-            this.collisionRadius = collisionRadius;
-            this.spawnFactor = ConfigLoader.LoadSpawnFactor();
-            this.Seed = seed;
-            this.random = new Random(seed);
-            this.thickness = thickness;
-            this.spawnTypeFlags = (flags.isBoss, flags.isQuest);
+            public int x;
+            public int y;
+            public Vect2D(int x, int y)
+            {
+                this.x = x;
+                this.y = y;
+            }
+        }
+
+        public MapConstructor(bool enableDetailedLogging = true)
+        {
+
+            ConfigLoader.InitConfigFiles("config");
+            this.mapWeights = ConfigLoader.LoadMapWeights();
+            this.spawnWeights = ConfigLoader.LoadSpawnWeights();
+            this.random = new Random(mapWeights.Seed ?? new Random().Next());
             this.ENABLE_DETAILED_LOGGING = enableDetailedLogging;
 
             NodeContainer = new NodeContainerData
@@ -62,12 +80,16 @@ namespace MapGeneratorCs
 
         public void GenerateMap()
         {
+            // Start details
             Console.WriteLine("Starting Map Generation...\n");
-
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+            // Init generation
             GenerationBasics.GenerateDefaultAndFlaggedNotes(this);
             GenerationBasics.FillDefaultNodesWithTypeNodes(this);
             ObjectGenerator.GenerateObjectDictionary(this);
+
+            // Finalize details
             stopwatch.Stop();
             Console.WriteLine("\n=== Generated Map Statistics ===\n"
                 + $"Floor nodes           {NodeContainer.NodesFloor.Count,6} stk\n"
@@ -78,29 +100,27 @@ namespace MapGeneratorCs
 
         }
 
-        public void SaveMapAsImage(string filePath)
+        public void SaveMapAsImage()
         {
-            try
-            {
-                IntMapBuilder.BuildFromNodes(this);
-            }
-            catch (InvalidOperationException ex)
-            {
-                Console.WriteLine($"Error building IntMap2D: {ex.Message}");
-                return;
-            }
-            IntMapBuilder.SaveToImage(this, filePath);
+            IntMapBuilder.BuildFromNodes(this);
+            IntMapBuilder.SaveToImage(this, "export/" + "map_output.png");
+        }
+
+        public void SaveMapAsJson()
+        {
+            IntMapBuilder.BuildFromNodes(this);
+            IntMapBuilder.SaveToJson(this, "export/" + "map_output.json");
         }
         
 
         // Expose internals to helper classes
         internal Random RNG => random;
-        internal int Length => length;
-        internal int Thickness => thickness;
-        internal int CollisionRadius => collisionRadius;
+        internal int Length => mapWeights.Length;
+        internal int Thickness => mapWeights.Thickness;
+        internal int CollisionRadius => mapWeights.CollisionRadius;
         internal int Padding => padding;
-        internal (bool isBoss, bool isQuest) SpawnTypeFlags => spawnTypeFlags;
-        internal SpawnFactors SpawnFactorValues => spawnFactor;
+        internal (bool isBoss, bool isQuest) SpawnTypeFlags => (mapWeights.FlagBoss, mapWeights.FlagQuest);
+        internal SpawnWeights SpawnWeightValues => spawnWeights;
         internal int[,]? Grid => TileMap2D;
         internal ref (int x, int y) CurrentPos => ref currentPosition;
         internal bool Verbose => ENABLE_DETAILED_LOGGING;

@@ -11,14 +11,12 @@ namespace MapGeneratorCs
             public static void GenerateObjectDictionary(MapConstructor map)
             {
                 Console.WriteLine("Converting Generate Nodes to Object Nodes in NodeContainer.NodesObjects...");
-                GenerateObjectWeights[] config = ConfigLoader.LoadGenObjectProperties();
+                GenerateObjectWeights[] config = ConfigLoader.LoadObjectWeights();
 
                 foreach (var kvp in map.NodeContainer.NodesGenerate)
                 {
                     var position = kvp.Key;
                     var genType = kvp.Value;
-
-                    Console.WriteLine($"Generating objects at {position.x}, {position.y} of type {genType}");;
 
                     switch (genType)
                     {
@@ -60,15 +58,47 @@ namespace MapGeneratorCs
                         case TileSpawnType.BossGenerator:
                             GenerateObjectsRandomWeighted(map, position, config[6]);
                             GenerateObjectsRandomCount(map, position, TileSpawnType.BossObject, 1);
-                            GenerateObject(map, position, TileSpawnType.BossObject, forceSpawn: true);
                             break;
 
                         // JSON list index 7
-                        default:
+                        case TileSpawnType.QuestGenerator:
                             GenerateObjectsRandomWeighted(map, position, config[7]);
+                            GenerateObjectsRandomCount(map, position, TileSpawnType.QuestObject, 1);
+                            break;
+
+                        // JSON list index 8
+                        case TileSpawnType.StartGenerator:
+                            GenerateObjectsRandomCount(map, position, TileSpawnType.StartObject, 1);
+                            break;
+
+                        case TileSpawnType.EndGenerator:
+                            GenerateObjectsRandomCount(map, position, TileSpawnType.EndObject, 1);;
+                            break;
+
+                        // JSON list index 10
+                        default:
+                            GenerateObjectsRandomWeighted(map, position, config[10]);
                             break;
                     }
                 }
+            }
+
+            public static int JSONIndexFromTileSpawnTypeGenerator(TileSpawnType type)
+            {
+                return type switch
+                {
+                    TileSpawnType.DefaultGenerator => 0,
+                    TileSpawnType.EnemyGenerator => 1,
+                    TileSpawnType.LandmarkGenerator => 2,
+                    TileSpawnType.TreasureGenerator => 3,
+                    TileSpawnType.TrapGenerator => 4,
+                    TileSpawnType.EmptyGenerator => 5,
+                    TileSpawnType.QuestGenerator => 6,
+                    TileSpawnType.BossGenerator => 7,
+                    TileSpawnType.StartGenerator => 8,
+                    TileSpawnType.EndGenerator => 9,
+                    _ => 10,
+                };
             }
 
             private static void GenerateObjectsRandomWeighted(MapConstructor map, (int x, int y) position, GenerateObjectWeights spawnWeights)
@@ -135,6 +165,7 @@ namespace MapGeneratorCs
 
             public struct GenerateObjectWeights
             {
+                public string Description { get; set; }
                 public int EmptyWeight { get; set; }
                 public int PropWeight { get; set; }
                 public int EnemyWeight { get; set; }

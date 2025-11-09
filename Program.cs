@@ -2,33 +2,55 @@
 {
     class Program
     {
-        private static readonly int _length = 1000;
-        private static readonly int _thickness = 1;
-        private static readonly int _collisionRadius = 5;
 
         static void Main(string[] args)
         {
-            string argFirst = args.Length > 0 ? args[0].ToLower() : "";
-            if (argFirst == "-h" || argFirst == "help" || argFirst == "--help")
+            var map = new MapConstructor(enableDetailedLogging: false);
+
+            if (args.Length == 0)
+                Console.WriteLine("No arguments provided. config files generated for customization\n  type --help for commands.");
+
+            if (args.Length > 0 && args[0] == "--help")
             {
-                Console.WriteLine("Usage: MapGeneratorCs <length> <thickness> <collisionRadius>");
-                Console.WriteLine("  <length>            : Length of the map (default: 1000)");
-                Console.WriteLine("  <thickness>         : Thickness of the paths (default: 1)");
-                Console.WriteLine("  <collisionRadius>   : Collision radius (default: 5)");
-                Environment.Exit(0);
+                Console.WriteLine("Available commands:\n" +
+                    "  --reset - Initialize configuration files with default values.\n" +
+                    "  --json - Generate map and save as JSON file.\n" +
+                    "  --image - Generate map and save as image file.\n" +
+                    "  --all - Generate map and save as both JSON and image files.\n" +
+                    "  --help - Show this help message."
+                );
+                
+                
+                return;
             }
 
-            var map = new MapConstructor(
-                length: args.Length > 0 ? int.Parse(args[0]) : _length,
-                thickness: args.Length > 1 ? int.Parse(args[1]) : _thickness,
-                collisionRadius: args.Length > 2 ? int.Parse(args[2]) : _collisionRadius,
-                seed: new Random().Next(),
-                flags: (isBoss: true, isQuest: true),
-                enableDetailedLogging: false
-            );
+            if (args.Length > 0)
+            {
+                switch (args[0])
+                {
+                    case "--reset":
+                        ConfigLoader.InitConfigFiles("config", overwriteExisting: true);
+                        break;
+                    case "--json":
+                        map.GenerateMap();
+                        map.SaveMapAsJson();
+                        break;
+                    case "--image":
+                        map.GenerateMap();
+                        map.SaveMapAsImage();
+                        break;
+                    case "--all":
+                        map.GenerateMap();
+                        map.SaveMapAsJson();
+                        map.SaveMapAsImage();
+                        break;
+                    default:
+                        Console.WriteLine($"Unknown command: {args[0]}\nType --help for a list of commands.");
+                        break;
+                }
+            }
 
-            map.GenerateMap();
-            map.SaveMapAsImage("export/map_output.png");
+
         }
     }
 }

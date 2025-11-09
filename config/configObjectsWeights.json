@@ -1,0 +1,112 @@
+[
+  {
+    "Description": "DefaultGenerator",
+    "EmptyWeight": 2,
+    "PropWeight": 1,
+    "EnemyWeight": 0,
+    "LandmarkWeight": 0,
+    "TreasureWeight": 0,
+    "TrapWeight": 0,
+    "DefaultWeight": 0,
+    "TotalWeight": 3
+  },
+  {
+    "Description": "EnemyGenerator",
+    "EmptyWeight": 4,
+    "PropWeight": 1,
+    "EnemyWeight": 0,
+    "LandmarkWeight": 0,
+    "TreasureWeight": 0,
+    "TrapWeight": 0,
+    "DefaultWeight": 0,
+    "TotalWeight": 5
+  },
+  {
+    "Description": "LandmarkGenerator",
+    "EmptyWeight": 5,
+    "PropWeight": 1,
+    "EnemyWeight": 0,
+    "LandmarkWeight": 0,
+    "TreasureWeight": 0,
+    "TrapWeight": 0,
+    "DefaultWeight": 0,
+    "TotalWeight": 6
+  },
+  {
+    "Description": "TreasureGenerator",
+    "EmptyWeight": 5,
+    "PropWeight": 2,
+    "EnemyWeight": 0,
+    "LandmarkWeight": 0,
+    "TreasureWeight": 1,
+    "TrapWeight": 0,
+    "DefaultWeight": 0,
+    "TotalWeight": 8
+  },
+  {
+    "Description": "TrapGenerator",
+    "EmptyWeight": 1,
+    "PropWeight": 1,
+    "EnemyWeight": 0,
+    "LandmarkWeight": 0,
+    "TreasureWeight": 0,
+    "TrapWeight": 10,
+    "DefaultWeight": 0,
+    "TotalWeight": 12
+  },
+  {
+    "Description": "EmptyGenerator",
+    "EmptyWeight": 12,
+    "PropWeight": 1,
+    "EnemyWeight": 0,
+    "LandmarkWeight": 0,
+    "TreasureWeight": 0,
+    "TrapWeight": 0,
+    "DefaultWeight": 0,
+    "TotalWeight": 13
+  },
+  {
+    "Description": "BossGenerator",
+    "EmptyWeight": 0,
+    "PropWeight": 0,
+    "EnemyWeight": 0,
+    "LandmarkWeight": 0,
+    "TreasureWeight": 0,
+    "TrapWeight": 0,
+    "DefaultWeight": 0,
+    "TotalWeight": 0
+  },
+  {
+    "Description": "QuestGenerator",
+    "EmptyWeight": 5,
+    "PropWeight": 1,
+    "EnemyWeight": 0,
+    "LandmarkWeight": 0,
+    "TreasureWeight": 0,
+    "TrapWeight": 0,
+    "DefaultWeight": 0,
+    "TotalWeight": 6
+  },
+  {
+    "Description": "StartGenerator",
+    "EmptyWeight": 0,
+    "PropWeight": 0,
+    "EnemyWeight": 0,
+    "LandmarkWeight": 0,
+    "TreasureWeight": 0,
+    "TrapWeight": 0,
+    "DefaultWeight": 0,
+    "TotalWeight": 0
+  },
+  {
+    "Description": "Default",
+    "EmptyWeight": 2,
+    "PropWeight": 1,
+    "EnemyWeight": 0,
+    "LandmarkWeight": 0,
+    "TreasureWeight": 0,
+    "TrapWeight": 0,
+    "DefaultWeight": 0,
+    "TotalWeight": 3
+  }
+]
