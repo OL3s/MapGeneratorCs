@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MapGeneratorCs\MapGeneratorCs.csproj" />
+    <ProjectReference Include="..\..\src\MapGeneratorCs\MapGeneratorCs.csproj" />
   </ItemGroup>
 
 </Project>
