@@ -16,9 +16,9 @@ namespace MapGeneratorCs
             {
                 Console.WriteLine("Available commands:\n" +
                     "  --reset - Initialize configuration files with default values.\n" +
-                    "  --json - Generate map and save as JSON file.\n" +
+                    "  --json [<filePath>] - Generate map and save as JSON file.\n" +
                     "  --json-load [<filePath>] - Load map from JSON file.\n" +
-                    "  --image - Generate map and save as image file.\n" +
+                    "  --image [<filePath>] - Generate map and save as image file.\n" +
                     "  --all - Generate map and save as both JSON and image files.\n" +
                     "  --help - Show this help message."
                 );
@@ -36,7 +36,10 @@ namespace MapGeneratorCs
                         break;
                     case "--json":
                         map.GenerateMap();
-                        map.SaveMapAsJson();
+                        if (args.Length > 1)
+                            map.SaveMapAsJson(args[1]);
+                        else
+                            map.SaveMapAsJson();
                         break;
                     case "--json-load":
                         if (args.Length > 1)
@@ -46,7 +49,10 @@ namespace MapGeneratorCs
                         break;
                     case "--image":
                         map.GenerateMap();
-                        map.SaveMapAsImage();
+                        if (args.Length > 1)
+                            map.SaveMapAsImage(args[1]);
+                        else
+                            map.SaveMapAsImage();
                         break;
                     case "--all":
                         map.GenerateMap();

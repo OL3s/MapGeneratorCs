@@ -99,15 +99,15 @@ namespace MapGeneratorCs
 
         }
 
-        public void SaveMapAsImage()
+        public void SaveMapAsImage(string filePath = "export/map_output.png")
         {
             IntMapBuilder.BuildFromNodes(this);
-            IntMapBuilder.SaveToImage(this, "export/" + "map_output.png");
+            IntMapBuilder.SaveToImage(this, filePath, includeGenerateNodes: false);
         }
-        public void SaveMapAsJson()
+        public void SaveMapAsJson(string filePath = "export/map_output.json")
         {
             IntMapBuilder.BuildFromNodes(this);
-            JsonMapBuilder.SaveMapAsJson(this, "export/" + "map_output.json");
+            JsonMapBuilder.SaveMapAsJson(this, filePath);
         }
 
         public void LoadMapFromJson(string filePath = "export/map_output.json")
