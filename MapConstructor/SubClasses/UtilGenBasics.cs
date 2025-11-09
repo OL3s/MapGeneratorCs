@@ -10,6 +10,9 @@ namespace MapGeneratorCs
             private static Vect2D currentPosition;
             public static void GenerateDefaultAndFlaggedNotes(MapConstructor map)
             {
+                var mapConfig = map.mapConfig;
+                var spawnData = map.spawnWeights;
+
                 if (map.NodeContainer.NodesFloorRaw.Count > 0)
                 {
                     Console.WriteLine("NodesFloor already generated. Skipping GenerateDefaultAndFlaggedNotes.");
@@ -19,38 +22,36 @@ namespace MapGeneratorCs
                 currentPosition = new Vect2D(0, 0);
                 int hitFloorCount = 0;
 
-                while (map.NodeContainer.NodesFloorRaw.Count < map.Length)
+                while (map.NodeContainer.NodesFloorRaw.Count < mapConfig.Length)
                 {
                     bool isStart = map.NodeContainer.NodesFloorRaw.Count == 0;
-                    bool isEnd = map.NodeContainer.NodesFloorRaw.Count == map.Length - 1;
-                    bool isBoss = map.SpawnTypeFlags.isBoss &&
-                                  map.NodeContainer.NodesFloorRaw.Count == (int)(map.Length * 0.66);
-                    bool isQuest = map.SpawnTypeFlags.isQuest &&
-                                   map.NodeContainer.NodesFloorRaw.Count == (int)(map.Length * 0.33);
+                    bool isEnd = map.NodeContainer.NodesFloorRaw.Count == mapConfig.Length - 1;
+                    bool isBoss = mapConfig.FlagBoss &&
+                                  map.NodeContainer.NodesFloorRaw.Count == (int)(mapConfig.Length * 0.66);
+                    bool isQuest = mapConfig.FlagQuest &&
+                                   map.NodeContainer.NodesFloorRaw.Count == (int)(mapConfig.Length * 0.33);
 
+                    // Add floor node if not exists
                     if (!map.NodeContainer.NodesFloorRaw.Contains(currentPosition))
                     {
                         hitFloorCount = 0;
 
+                        // add flagged nodes
                         if (isStart) map.NodeContainer.NodesGenerate[currentPosition] = TileSpawnType.StartGenerator;
                         else if (isEnd) map.NodeContainer.NodesGenerate[currentPosition] = TileSpawnType.EndGenerator;
                         else if (isBoss) map.NodeContainer.NodesGenerate[currentPosition] = TileSpawnType.BossGenerator;
                         else if (isQuest) map.NodeContainer.NodesGenerate[currentPosition] = TileSpawnType.QuestGenerator;
-
-                        map.NodeContainer.NodesFloorRaw.Add(currentPosition);
-
-                        if (map.Verbose)
-                            Console.WriteLine($"Added node at {currentPosition.x}, {currentPosition.y} (total {map.NodeContainer.NodesFloorRaw.Count}/{map.Length})");
+                        map.NodeContainer.NodesFloorRaw.Add(currentPosition); // Add new floor node
                     }
+
+                    // Count hits on existing floor nodes
                     else
                     {
                         hitFloorCount++;
-                        if (map.Verbose)
-                            Console.WriteLine($"Position {currentPosition.x}, {currentPosition.y} already occupied. Hit count: {hitFloorCount}");
                     }
 
                     var directions = new List<Vect2D> { new Vect2D(1, 0), new Vect2D(-1, 0), new Vect2D(0, 1), new Vect2D(0, -1) };
-                    var dir = directions[map.RNG.Next(directions.Count)];
+                    var dir = directions[map.random.Next(directions.Count)];
 
                     if (hitFloorCount < 2)
                         currentPosition = new Vect2D(currentPosition.x + dir.x, currentPosition.y + dir.y);
@@ -59,11 +60,11 @@ namespace MapGeneratorCs
                             currentPosition = new Vect2D(currentPosition.x + dir.x, currentPosition.y + dir.y);
 
                     if (map.NodeContainer.NodesFloorRaw.Count % 1_000_000 == 0)
-                        Console.WriteLine($"Progress: {map.NodeContainer.NodesFloorRaw.Count / 1_000_000}/{map.Length / 1_000_000} 1-million packs generated...");
+                        Console.WriteLine($"Progress: {map.NodeContainer.NodesFloorRaw.Count / 1_000_000}/{map.mapConfig.Length / 1_000_000} 1-million packs generated...");
                 }
 
-                ApplyNodeRepositionBounds(map);
-                ApplyNodeFloorThickness(map);
+                ApplyNodeRepositionBounds(map); // Give nodes positive coordinates
+                map.NodeContainer.NodesFloor = CreateNodeFloorThickness(map.NodeContainer.NodesFloorRaw, map.mapConfig);
             }
 
             public static void FillDefaultNodesWithTypeNodes(MapConstructor map)
@@ -78,20 +79,17 @@ namespace MapGeneratorCs
                 int n = candidates.Count;
                 while (n > 1)
                 {
-                    int k = map.RNG.Next(n--);
+                    int k = map.random.Next(n--);
                     (candidates[n], candidates[k]) = (candidates[k], candidates[n]);
                 }
 
                 foreach (var pos in candidates)
                 {
-                    if (map.RNG.NextDouble() < 0.9) continue; // skip chance
-                    if (IsGenerateNodesRadiusOccupied(map, pos, map.CollisionRadius)) continue;
+                    if (map.random.NextDouble() < 0.9) continue; // skip chance
+                    if (IsGenerateNodesRadiusOccupied(map, pos, map.mapConfig.CollisionRadius)) continue;
 
                     var type = GetRandomSpawnTypeFromSpawnFactors(map);
                     map.NodeContainer.NodesGenerate[pos] = type;
-
-                    if (map.Verbose)
-                        Console.WriteLine($"Assigned {map.NodeContainer.NodesGenerate[pos]} to node at {pos}");
                 }
             }
 
@@ -115,7 +113,7 @@ namespace MapGeneratorCs
             {
                 int total = map.spawnWeights.enemy + map.spawnWeights.landmark + map.spawnWeights.treasure
                             + map.spawnWeights.empty + map.spawnWeights._default + map.spawnWeights.trap;
-                int roll = map.RNG.Next(1, total + 1), cum = 0;
+                int roll = map.random.Next(1, total + 1), cum = 0;
 
                 if ((cum += map.spawnWeights.enemy) >= roll) return TileSpawnType.EnemyGenerator;
                 if ((cum += map.spawnWeights.landmark) >= roll) return TileSpawnType.LandmarkGenerator;
@@ -138,8 +136,8 @@ namespace MapGeneratorCs
                     if (p.y < minY) minY = p.y;
                 }
 
-                int offsetX = map.Padding - minX + map.Thickness;
-                int offsetY = map.Padding - minY + map.Thickness;
+                int offsetX = map.padding - minX + map.mapConfig.Thickness;
+                int offsetY = map.padding - minY + map.mapConfig.Thickness;
 
                 var repositioned = new HashSet<Vect2D>();
                 foreach (var p in map.NodeContainer.NodesFloorRaw)
@@ -152,29 +150,31 @@ namespace MapGeneratorCs
                 map.NodeContainer.NodesGenerate = newDict;
             }
 
-            private static void ApplyNodeFloorThickness(MapConstructor map)
+            private static HashSet<Vect2D> CreateNodeFloorThickness(HashSet<Vect2D> mapToThicken, MapConfig mapConfig)
             {
                 Console.WriteLine("Applying thickness to NodeContainer.NodesFloor...");
 
-                if (map.Thickness <= 0)
+                // Ignore thickness zero or less
+                if (mapConfig.Thickness <= 0)
                 {
-                    map.NodeContainer.NodesFloor = map.NodeContainer.NodesFloorRaw;
-                    return;
+                    Console.WriteLine("No thickness applied.");
+                    return mapToThicken;
                 }
 
-                var result = new HashSet<Vect2D>();
-                foreach (var p in map.NodeContainer.NodesFloorRaw)
+                // Create floor with thickness
+                var nodesFloorThickness = new HashSet<Vect2D>();
+                foreach (var p in mapToThicken)
                 {
-                    for (int dx = -map.Thickness; dx <= map.Thickness; dx++)
-                        for (int dy = -map.Thickness; dy <= map.Thickness; dy++)
-                            if (dx * dx + dy * dy <= map.Thickness * map.Thickness)
-                                result.Add(new Vect2D(p.x + dx, p.y + dy));
+                    for (int dx = -mapConfig.Thickness; dx <= mapConfig.Thickness; dx++)
+                        for (int dy = -mapConfig.Thickness; dy <= mapConfig.Thickness; dy++)
+                            if (dx * dx + dy * dy <= mapConfig.Thickness * mapConfig.Thickness)
+                                nodesFloorThickness.Add(new Vect2D(p.x + dx, p.y + dy));
 
-                    if (result.Count % 1_000_000 == 0)
-                        Console.WriteLine($"Progress: {result.Count / 1_000_000}/{map.Length / 1_000_000} 1-million packs generated...");
+                    if (nodesFloorThickness.Count % 1_000_000 == 0)
+                        Console.WriteLine($"Progress: {nodesFloorThickness.Count / 1_000_000}/{mapConfig.Length / 1_000_000} 1-million packs generated...");
                 }
 
-                map.NodeContainer.NodesFloor = result;
+                return nodesFloorThickness;
             }
         }
     }

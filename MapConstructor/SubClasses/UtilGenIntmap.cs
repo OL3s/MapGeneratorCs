@@ -10,13 +10,10 @@ namespace MapGeneratorCs
     {
         internal static class IntMapBuilder
         {
-            public static void BuildFromNodes(MapConstructor map)
+            public static int[,] CreateGridFromMap(MapConstructor map)
             {
-                if (map.NodeContainer.NodesFloor == null || map.NodeContainer.NodesFloor.Count == 0 || map.Length <= 0)
+                if (map.NodeContainer.NodesFloor == null || map.NodeContainer.NodesFloor.Count == 0 || map.mapConfig.Length <= 0)
                     throw new InvalidOperationException("No NodesFloor to convert to map.");
-
-                if (map.TileMap2D != null)
-                    throw new InvalidOperationException("TileMap2D has already been built.");
 
                 int maxX = 0, maxY = 0;
                 foreach (var p in map.NodeContainer.NodesFloor)
@@ -25,11 +22,11 @@ namespace MapGeneratorCs
                     if (p.y > maxY) maxY = p.y;
                 }
 
-                var width = maxX + map.Thickness + map.Padding + 1;
-                var height = maxY + map.Thickness + map.Padding + 1;
-                var grid = map.TileMap2D = new int[width, height];
+                var width = maxX + map.mapConfig.Thickness + map.padding + 1;
+                var height = maxY + map.mapConfig.Thickness + map.padding + 1;
+                var grid = new int[width, height];
 
-                Console.WriteLine($"Converting to IntMap2D ({width}x{height})");
+                Console.WriteLine($"Converting to IntMap2D ({width}x{height})...");
 
                 foreach (var p in map.NodeContainer.NodesFloor)
                     if (p.x >= 0 && p.x < width && p.y >= 0 && p.y < height)
@@ -50,15 +47,14 @@ namespace MapGeneratorCs
                     if (p.x >= 0 && p.x < width && p.y >= 0 && p.y < height)
                         grid[p.x, p.y] = (int)kv.Value;
                 }
+
+                return grid;
             }
 
-            public static void SaveToImage(MapConstructor map, string filePath, bool includeGenerateNodes = false)
+            public static void SaveGridToImage(int[,] grid, string filePath, bool includeGenerateNodes = false)
             {
-                if (map.Grid == null)
-                    throw new InvalidOperationException("TileMap2D is null. Build map first.\n  ");
-
-                int w = map.Grid.GetLength(0);
-                int h = map.Grid.GetLength(1);
+                int w = grid.GetLength(0);
+                int h = grid.GetLength(1);
                 Console.WriteLine($"Saving map to {filePath} ({w}x{h})...");
 
                 using var image = new Image<Rgba32>(w, h);
@@ -66,7 +62,7 @@ namespace MapGeneratorCs
                 {
                     for (int y = 0; y < h; y++)
                     {
-                        var tileType = (TileSpawnType)map.Grid[x, y];
+                        var tileType = (TileSpawnType)grid[x, y];
                         if (tileType == TileSpawnType.Empty)
                             continue;
 

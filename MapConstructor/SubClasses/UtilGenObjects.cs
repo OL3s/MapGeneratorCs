@@ -8,61 +8,47 @@ namespace MapGeneratorCs
         internal static class ObjectGenerator
         {
             // Convert generate nodes to object nodes based on spawn factors
-            public static void GenerateObjectDictionary(MapConstructor map)
+            public static void GenerateObjectNodes(MapConstructor map)
             {
                 Console.WriteLine("Converting Generate Nodes to Object Nodes in NodeContainer.NodesObjects...");
-                GenerateObjectWeights[] config = ConfigLoader.LoadObjectWeights();
+                Dictionary<int, GenerateObjectWeights> config = ConfigLoader.LoadObjectWeights();
 
                 foreach (var kvp in map.NodeContainer.NodesGenerate)
                 {
                     var position = kvp.Key;
-                    var genType = kvp.Value;
+                    var generateType = kvp.Value;
+                    if (!config.ContainsKey((int)generateType))
+                        continue;
+                    GenerateObjectsRandomWeighted(map, position, config[(int)generateType]);
 
-                    switch (genType)
+                    switch (generateType)
                     {
-                        // JSON list index 0
-                        case TileSpawnType.DefaultGenerator:
-                            GenerateObjectsRandomWeighted(map, position, config[0]);
-                            break;
-
-                        // JSON list index 1
                         case TileSpawnType.EnemyGenerator:
-                            GenerateObjectsRandomCount(map, position, TileSpawnType.EnemyObject, map.RNG.Next(1, 4));
-                            GenerateObjectsRandomWeighted(map, position, config[1]);
+                            GenerateObjectsRandomCount(map, position, TileSpawnType.EnemyObject, map.random.Next(1, 4));
                             break;
 
                         // JSON list index 2
                         case TileSpawnType.LandmarkGenerator:
                             GenerateObjectsRandomCount(map, position, TileSpawnType.LandmarkObject, 1);
-                            GenerateObjectsRandomWeighted(map, position, config[2]);
                             break;
 
                         // JSON list index 3
                         case TileSpawnType.TreasureGenerator:
                             GenerateObjectsRandomCount(map, position, TileSpawnType.TreasureObject, 1);
-                            GenerateObjectsRandomWeighted(map, position, config[3]);
                             break;
 
                         // JSON list index 4
                         case TileSpawnType.TrapGenerator:
-                            GenerateObjectsRandomCount(map, position, TileSpawnType.TrapObject, map.RNG.Next(1, 3));
-                            GenerateObjectsRandomWeighted(map, position, config[4]);
-                            break;
-
-                        // JSON list index 5
-                        case TileSpawnType.EmptyGenerator:
-                            GenerateObjectsRandomWeighted(map, position, config[5]);
+                            GenerateObjectsRandomCount(map, position, TileSpawnType.TrapObject, map.random.Next(1, 3));
                             break;
 
                         // JSON list index 6
                         case TileSpawnType.BossGenerator:
-                            GenerateObjectsRandomWeighted(map, position, config[6]);
                             GenerateObjectsRandomCount(map, position, TileSpawnType.BossObject, 1);
                             break;
 
                         // JSON list index 7
                         case TileSpawnType.QuestGenerator:
-                            GenerateObjectsRandomWeighted(map, position, config[7]);
                             GenerateObjectsRandomCount(map, position, TileSpawnType.QuestObject, 1);
                             break;
 
@@ -72,44 +58,21 @@ namespace MapGeneratorCs
                             break;
 
                         case TileSpawnType.EndGenerator:
-                            GenerateObjectsRandomCount(map, position, TileSpawnType.EndObject, 1);;
-                            break;
-
-                        // JSON list index 10
-                        default:
-                            GenerateObjectsRandomWeighted(map, position, config[10]);
+                            GenerateObjectsRandomCount(map, position, TileSpawnType.EndObject, 1);
                             break;
                     }
                 }
             }
 
-            public static int JSONIndexFromTileSpawnTypeGenerator(TileSpawnType type)
-            {
-                return type switch
-                {
-                    TileSpawnType.DefaultGenerator => 0,
-                    TileSpawnType.EnemyGenerator => 1,
-                    TileSpawnType.LandmarkGenerator => 2,
-                    TileSpawnType.TreasureGenerator => 3,
-                    TileSpawnType.TrapGenerator => 4,
-                    TileSpawnType.EmptyGenerator => 5,
-                    TileSpawnType.QuestGenerator => 6,
-                    TileSpawnType.BossGenerator => 7,
-                    TileSpawnType.StartGenerator => 8,
-                    TileSpawnType.EndGenerator => 9,
-                    _ => 10,
-                };
-            }
-
             private static void GenerateObjectsRandomWeighted(MapConstructor map, Vect2D position, GenerateObjectWeights spawnWeights)
             {
-                var possiblePositions = GetOpenTiles(map, position, map.CollisionRadius);
+                var possiblePositions = GetOpenTiles(map, position, map.mapConfig.CollisionRadius);
                 int propCount = possiblePositions.Count / 3;
 
                 while (propCount-- > 0 && possiblePositions.Count > 0)
                 {
-                    var spawnPos = possiblePositions[map.RNG.Next(possiblePositions.Count)];
-                    var objType = spawnWeights.GetRandomType(map.RNG);
+                    var spawnPos = possiblePositions[map.random.Next(possiblePositions.Count)];
+                    var objType = spawnWeights.GetRandomObject(map.random);
                     if (objType != TileSpawnType.Empty && !map.NodeContainer.NodesObjects.ContainsKey(spawnPos))
                         map.NodeContainer.NodesObjects[spawnPos] = objType;
                     possiblePositions.Remove(spawnPos);
@@ -118,11 +81,11 @@ namespace MapGeneratorCs
 
             private static void GenerateObjectsRandomCount(MapConstructor map, Vect2D position, TileSpawnType objType, int count)
             {
-                var possiblePositions = GetOpenTiles(map, position, map.CollisionRadius);
+                var possiblePositions = GetOpenTiles(map, position, map.mapConfig.CollisionRadius);
 
                 while (count-- > 0 && possiblePositions.Count > 0)
                 {
-                    var spawnPos = possiblePositions[map.RNG.Next(possiblePositions.Count)];
+                    var spawnPos = possiblePositions[map.random.Next(possiblePositions.Count)];
                     if (objType != TileSpawnType.Empty && !map.NodeContainer.NodesObjects.ContainsKey(spawnPos))
                         map.NodeContainer.NodesObjects[spawnPos] = objType;
                     possiblePositions.Remove(spawnPos);
@@ -135,11 +98,6 @@ namespace MapGeneratorCs
                 {
                     map.NodeContainer.NodesObjects[position] = objType;
                 }
-            }
-
-            private static void GenerateObjectsCountPadded(MapConstructor map, Vect2D position, TileSpawnType objType, int count, int padding)
-            {
-                new NotImplementedException("GenerateObjectsCountPadded is not implemented yet.");
             }
 
             private static List<Vect2D> GetOpenTiles(MapConstructor map, Vect2D center, int radius)
@@ -165,7 +123,6 @@ namespace MapGeneratorCs
 
             public struct GenerateObjectWeights
             {
-                public string Description { get; set; }
                 public int EmptyWeight { get; set; }
                 public int PropWeight { get; set; }
                 public int EnemyWeight { get; set; }
@@ -174,7 +131,7 @@ namespace MapGeneratorCs
                 public int TrapWeight { get; set; }
                 public int DefaultWeight { get; set; }
                 public int TotalWeight => PropWeight + EnemyWeight + LandmarkWeight + TreasureWeight + TrapWeight + EmptyWeight + DefaultWeight;
-                public TileSpawnType GetRandomType(Random rng)
+                public TileSpawnType GetRandomObject(Random rng)
                 {
                     if (TotalWeight <= 0)
                         return TileSpawnType.Empty;

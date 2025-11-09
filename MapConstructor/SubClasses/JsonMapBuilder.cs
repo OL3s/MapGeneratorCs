@@ -1,7 +1,4 @@
-using System.IO;
 using System.Text.Json;
-using System.Collections.Generic;
-using Microsoft.VisualBasic;
 using static MapGeneratorCs.MapConstructor;
 
 namespace MapGeneratorCs
@@ -12,12 +9,13 @@ namespace MapGeneratorCs
         {
             public static void SaveMapAsJson(MapConstructor map, string filePath)
             {
+                Console.WriteLine($"Saving map to JSON {filePath}...");
                 var options = new JsonSerializerOptions { WriteIndented = true };
                 options.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
 
                 // Convert Dictionary<Vect2D, TileSpawnType> to Dictionary<string, TileSpawnType> for serialization
                 // And HashSet<Vect2D> to List<string>
-                var serializableNodeContainer = new
+                var serializableNodeContainer = new serializableNodeContainer
                 {
                     NodesFloor = new List<string>(),
                     NodesFloorRaw = new List<string>(),
@@ -25,6 +23,7 @@ namespace MapGeneratorCs
                     NodesObjects = new Dictionary<string, TileSpawnType>()
                 };
 
+                // convert vect2d to string
                 foreach (var v in map.NodeContainer.NodesFloor)
                     serializableNodeContainer.NodesFloor.Add($"{v.x},{v.y}");
 
@@ -40,13 +39,13 @@ namespace MapGeneratorCs
                 // Serialize the entire NodeContainer
                 string json = JsonSerializer.Serialize(serializableNodeContainer, options);
                 File.WriteAllText(filePath, json);
-
-                if (map.ENABLE_DETAILED_LOGGING)
-                    Console.WriteLine($"Map saved as JSON to {filePath}");
+                Console.WriteLine("Map saved to JSON successfully.");
             }
 
-            public static void LoadMapFromJson(MapConstructor map, string filePath)
+            public static MapConstructor LoadMapFromJson(string filePath)
             {
+                Console.WriteLine($"Loading map from JSON {filePath}...");
+                var map = new MapConstructor();
                 var options = new JsonSerializerOptions();
                 options.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
 
@@ -80,6 +79,9 @@ namespace MapGeneratorCs
                     var keyParts = kvp.Key.Split(',');
                     map.NodeContainer.NodesObjects.Add(new Vect2D(int.Parse(keyParts[0]), int.Parse(keyParts[1])), kvp.Value);
                 }
+
+                Console.WriteLine("Map loaded from JSON successfully.");
+                return map;
             }
         }
     }
@@ -89,6 +91,6 @@ namespace MapGeneratorCs
         public List<string> NodesFloor { get; set; } = new();
         public List<string> NodesFloorRaw { get; set; } = new();
         public Dictionary<string, TileSpawnType> NodesGenerate { get; set; } = new();
-        public Dictionary<string, MapConstructor.TileSpawnType> NodesObjects { get; set; } = new();
+        public Dictionary<string, TileSpawnType> NodesObjects { get; set; } = new();
     }
 }

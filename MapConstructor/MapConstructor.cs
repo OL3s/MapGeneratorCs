@@ -5,10 +5,9 @@ using System.Text.Json.Serialization;
 namespace MapGeneratorCs
 {
     // === Main Map Constructor Class (core) ===
-    partial class MapConstructor
+    public partial class MapConstructor
     {
-        private readonly bool ENABLE_DETAILED_LOGGING;
-        private Random random;
+        internal Random random;
         public struct SpawnWeights
         {
             public int enemy { get; set; }
@@ -19,8 +18,8 @@ namespace MapGeneratorCs
             public int trap { get; set; }
             public int props { get; set; }
         }
-        private SpawnWeights spawnWeights;
-        public struct MapWeights
+        public SpawnWeights spawnWeights;
+        public struct MapConfig
         {
 
             public int Length { get; set; } = 1000;
@@ -29,11 +28,10 @@ namespace MapGeneratorCs
             public int? Seed { get; set; } = null;
             public bool FlagBoss { get; set; } = true;
             public bool FlagQuest { get; set; } = true;
-            public MapWeights() { }
+            public MapConfig() { }
         }
-        private MapWeights mapWeights;
-        private int[,]? TileMap2D;
-        private int padding = 1;
+        public MapConfig mapConfig;
+        internal int padding = 1;
 
         public class NodeContainerData
         {
@@ -43,7 +41,7 @@ namespace MapGeneratorCs
             public Dictionary<Vect2D, TileSpawnType> NodesObjects { get; set; } = new();
         }
 
-        public NodeContainerData NodeContainer;
+        public NodeContainerData NodeContainer { get; set; } = new NodeContainerData();
         public struct Vect2D
         {
             public int x;
@@ -55,34 +53,27 @@ namespace MapGeneratorCs
             }
         }
 
-        public MapConstructor(bool enableDetailedLogging = true)
+        public MapConstructor()
         {
 
-            ConfigLoader.InitConfigFiles("config", "export", false);
-            this.mapWeights = ConfigLoader.LoadMapWeights();
-            this.spawnWeights = ConfigLoader.LoadSpawnWeights();
-            this.random = new Random(mapWeights.Seed ?? new Random().Next());
-            this.ENABLE_DETAILED_LOGGING = enableDetailedLogging;
-
-            NodeContainer = new NodeContainerData
-            {
-                NodesFloor = new HashSet<Vect2D>(),
-                NodesFloorRaw = new HashSet<Vect2D>(),
-                NodesGenerate = new Dictionary<Vect2D, TileSpawnType>(),
-                NodesObjects = new Dictionary<Vect2D, TileSpawnType>()
-            };
+            ConfigLoader.InitConfigFiles();
+            random = new Random();
         }
 
         public void GenerateMap()
         {
             // Start details
-            Console.WriteLine("Starting Map Generation...\n");
+            Console.WriteLine("Starting Map Generation...");
+            this.mapConfig = ConfigLoader.LoadMapConfig();
+            this.spawnWeights = ConfigLoader.LoadSpawnWeights();
+            this.random = (mapConfig.Seed == null) ? this.random : new Random((int)mapConfig.Seed);
+
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
             // Init generation
             GenerationBasics.GenerateDefaultAndFlaggedNotes(this);
             GenerationBasics.FillDefaultNodesWithTypeNodes(this);
-            ObjectGenerator.GenerateObjectDictionary(this);
+            ObjectGenerator.GenerateObjectNodes(this);
 
             // Finalize details
             stopwatch.Stop();
@@ -95,37 +86,40 @@ namespace MapGeneratorCs
 
         }
 
+
+        public void ResetConfigToDefaults()
+        {
+            ConfigLoader.InitConfigFiles(overwriteExisting: true);
+        }
         public void SaveMapAsImage(string filePath = "export/map_output.png")
         {
-            IntMapBuilder.BuildFromNodes(this);
-            IntMapBuilder.SaveToImage(this, filePath, includeGenerateNodes: false);
+            var grid = IntMapBuilder.CreateGridFromMap(this);
+            IntMapBuilder.SaveGridToImage(grid, filePath, includeGenerateNodes: false);
         }
         public void SaveMapAsJson(string filePath = "export/map_output.json")
         {
-            IntMapBuilder.BuildFromNodes(this);
             JsonMapBuilder.SaveMapAsJson(this, filePath);
         }
         public void SaveAll() 
         {
-            IntMapBuilder.BuildFromNodes(this);
-            IntMapBuilder.SaveToImage(this, "export/map_output.png", includeGenerateNodes: false);
+            var grid = IntMapBuilder.CreateGridFromMap(this);
+            IntMapBuilder.SaveGridToImage(grid, "export/map_output.png", includeGenerateNodes: false);
             JsonMapBuilder.SaveMapAsJson(this, "export/map_output.json");
         }
-
         public void LoadMapFromJson(string filePath = "export/map_output.json")
         {
-            JsonMapBuilder.LoadMapFromJson(this, filePath);
+            var loaded = JsonMapBuilder.LoadMapFromJson(filePath);
+            // Copy loaded data into this instance
+            this.NodeContainer = loaded.NodeContainer;
+            this.mapConfig = loaded.mapConfig;
+            this.spawnWeights = loaded.spawnWeights;
+            this.random = loaded.random;
+            this.padding = loaded.padding;
+        }
+        public void ClearAllData()
+        {
+            ConfigLoader.DeleteAll();
         }
 
-        // Expose internals to helper classes
-        internal Random RNG => random;
-        internal int Length => mapWeights.Length;
-        internal int Thickness => mapWeights.Thickness;
-        internal int CollisionRadius => mapWeights.CollisionRadius;
-        internal int Padding => padding;
-        internal (bool isBoss, bool isQuest) SpawnTypeFlags => (mapWeights.FlagBoss, mapWeights.FlagQuest);
-        internal SpawnWeights SpawnWeightValues => spawnWeights;
-        internal int[,]? Grid => TileMap2D;
-        internal bool Verbose => ENABLE_DETAILED_LOGGING;
     }
 }
