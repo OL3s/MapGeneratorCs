@@ -44,26 +44,30 @@ namespace MapGeneratorCs
         }
 
         // create config files with default values if they do not exist
-        public static void InitConfigFiles(string folderPath, bool overwriteExisting = false)
+        public static void InitConfigFiles(string folderPathConfig, string folderPathExport, bool overwriteExisting = false)
         {
 
             Console.WriteLine($"{(overwriteExisting ? "Overwriting" : "Checking")} config files...");
 
             // Ensure config directory exists
-            if (!Directory.Exists(folderPath))
-                Directory.CreateDirectory(folderPath);
+            if (!Directory.Exists(folderPathConfig))
+                Directory.CreateDirectory(folderPathConfig);
+
+            // Ensure export directory exists
+            if (!Directory.Exists(folderPathExport))
+                Directory.CreateDirectory(folderPathExport);
 
             // spawn weights
-            string spawnWeightsPath = Path.Combine(folderPath, "configSpawnWeights.json");
+            string spawnWeightsPath = Path.Combine(folderPathConfig, "configSpawnWeights.json");
             if (!File.Exists(spawnWeightsPath))
                 ConfigConstructor.CreateSpawnWeights(spawnWeightsPath);
 
             // generate object weights
-            string genObjectsPath = Path.Combine(folderPath, "configObjectsWeights.json");
+            string genObjectsPath = Path.Combine(folderPathConfig, "configObjectsWeights.json");
             if (!File.Exists(genObjectsPath) || overwriteExisting)
                 ConfigConstructor.CreateObjectsWeights(genObjectsPath);
 
-            string mapWeightsPath = Path.Combine(folderPath, "configMapWeights.json");
+            string mapWeightsPath = Path.Combine(folderPathConfig, "configMapWeights.json");
             if (!File.Exists(mapWeightsPath) || overwriteExisting)
                 ConfigConstructor.CreateMapWeights(mapWeightsPath);
 

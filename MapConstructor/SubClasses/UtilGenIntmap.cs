@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Formats.Png;
@@ -91,17 +93,6 @@ namespace MapGeneratorCs
 
                 image.Save(filePath, new PngEncoder());
                 Console.WriteLine("Map image saved successfully.");
-            }
-
-            public static void SaveToJson(MapConstructor map, string filePath)
-            {
-                if (map.Grid == null)
-                    throw new InvalidOperationException("TileMap2D is null. Build map first.\n  ");
-
-                NodeContainerData save = map.NodeContainer;
-                string json = System.Text.Json.JsonSerializer.Serialize(save, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(filePath, json);
-                Console.WriteLine($"Map saved to JSON at {filePath}");
             }
         }
     }

@@ -1,4 +1,6 @@
-﻿namespace MapGeneratorCs
+﻿using static MapGeneratorCs.MapConstructor;
+
+namespace MapGeneratorCs
 {
     class Program
     {
@@ -15,12 +17,13 @@
                 Console.WriteLine("Available commands:\n" +
                     "  --reset - Initialize configuration files with default values.\n" +
                     "  --json - Generate map and save as JSON file.\n" +
+                    "  --json-load [<filePath>] - Load map from JSON file.\n" +
                     "  --image - Generate map and save as image file.\n" +
                     "  --all - Generate map and save as both JSON and image files.\n" +
                     "  --help - Show this help message."
                 );
-                
-                
+
+
                 return;
             }
 
@@ -29,11 +32,17 @@
                 switch (args[0])
                 {
                     case "--reset":
-                        ConfigLoader.InitConfigFiles("config", overwriteExisting: true);
+                        ConfigLoader.InitConfigFiles("config", "export", overwriteExisting: true);
                         break;
                     case "--json":
                         map.GenerateMap();
                         map.SaveMapAsJson();
+                        break;
+                    case "--json-load":
+                        if (args.Length > 1)
+                            map.LoadMapFromJson(args[1]);
+                        else
+                            map.LoadMapFromJson();
                         break;
                     case "--image":
                         map.GenerateMap();

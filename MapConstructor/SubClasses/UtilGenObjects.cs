@@ -101,7 +101,7 @@ namespace MapGeneratorCs
                 };
             }
 
-            private static void GenerateObjectsRandomWeighted(MapConstructor map, (int x, int y) position, GenerateObjectWeights spawnWeights)
+            private static void GenerateObjectsRandomWeighted(MapConstructor map, Vect2D position, GenerateObjectWeights spawnWeights)
             {
                 var possiblePositions = GetOpenTiles(map, position, map.CollisionRadius);
                 int propCount = possiblePositions.Count / 3;
@@ -116,7 +116,7 @@ namespace MapGeneratorCs
                 }
             }
 
-            private static void GenerateObjectsRandomCount(MapConstructor map, (int x, int y) position, TileSpawnType objType, int count)
+            private static void GenerateObjectsRandomCount(MapConstructor map, Vect2D position, TileSpawnType objType, int count)
             {
                 var possiblePositions = GetOpenTiles(map, position, map.CollisionRadius);
 
@@ -129,29 +129,29 @@ namespace MapGeneratorCs
                 }
             }
 
-            private static void GenerateObject(MapConstructor map, (int x, int y) position, TileSpawnType objType, bool forceSpawn = false)
+            private static void GenerateObject(MapConstructor map, Vect2D position, TileSpawnType objType, bool forceSpawn = false)
             {
                 if (forceSpawn || !map.NodeContainer.NodesObjects.ContainsKey(position))
                 {
                     map.NodeContainer.NodesObjects[position] = objType;
                 }
             }
-            
-            private static void GenerateObjectsCountPadded(MapConstructor map, (int x, int y) position, TileSpawnType objType, int count, int padding)
+
+            private static void GenerateObjectsCountPadded(MapConstructor map, Vect2D position, TileSpawnType objType, int count, int padding)
             {
                 new NotImplementedException("GenerateObjectsCountPadded is not implemented yet.");
             }
 
-            private static List<(int x, int y)> GetOpenTiles(MapConstructor map, (int x, int y) center, int radius)
+            private static List<Vect2D> GetOpenTiles(MapConstructor map, Vect2D center, int radius)
             {
-                var outTiles = new List<(int x, int y)>();
+                var outTiles = new List<Vect2D>();
                 for (int dx = -radius; dx <= radius; dx++)
                 {
                     for (int dy = -radius; dy <= radius; dy++)
                     {
                         if (dx * dx + dy * dy <= radius * radius)
                         {
-                            var position = (center.x + dx, center.y + dy);
+                            var position = new Vect2D(center.x + dx, center.y + dy);
                             if (map.NodeContainer.NodesFloor.Contains(position) &&
                                 !map.NodeContainer.NodesObjects.ContainsKey(position))
                             {

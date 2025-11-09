@@ -7,6 +7,7 @@ namespace MapGeneratorCs
     {
         internal static class GenerationBasics
         {
+            private static Vect2D currentPosition;
             public static void GenerateDefaultAndFlaggedNotes(MapConstructor map)
             {
                 if (map.NodeContainer.NodesFloorRaw.Count > 0)
@@ -15,7 +16,7 @@ namespace MapGeneratorCs
                     return;
                 }
 
-                map.CurrentPos = (0, 0);
+                currentPosition = new Vect2D(0, 0);
                 int hitFloorCount = 0;
 
                 while (map.NodeContainer.NodesFloorRaw.Count < map.Length)
@@ -27,35 +28,35 @@ namespace MapGeneratorCs
                     bool isQuest = map.SpawnTypeFlags.isQuest &&
                                    map.NodeContainer.NodesFloorRaw.Count == (int)(map.Length * 0.33);
 
-                    if (!map.NodeContainer.NodesFloorRaw.Contains(map.CurrentPos))
+                    if (!map.NodeContainer.NodesFloorRaw.Contains(currentPosition))
                     {
                         hitFloorCount = 0;
 
-                        if (isStart) map.NodeContainer.NodesGenerate[map.CurrentPos] = TileSpawnType.StartGenerator;
-                        else if (isEnd) map.NodeContainer.NodesGenerate[map.CurrentPos] = TileSpawnType.EndGenerator;
-                        else if (isBoss) map.NodeContainer.NodesGenerate[map.CurrentPos] = TileSpawnType.BossGenerator;
-                        else if (isQuest) map.NodeContainer.NodesGenerate[map.CurrentPos] = TileSpawnType.QuestGenerator;
+                        if (isStart) map.NodeContainer.NodesGenerate[currentPosition] = TileSpawnType.StartGenerator;
+                        else if (isEnd) map.NodeContainer.NodesGenerate[currentPosition] = TileSpawnType.EndGenerator;
+                        else if (isBoss) map.NodeContainer.NodesGenerate[currentPosition] = TileSpawnType.BossGenerator;
+                        else if (isQuest) map.NodeContainer.NodesGenerate[currentPosition] = TileSpawnType.QuestGenerator;
 
-                        map.NodeContainer.NodesFloorRaw.Add(map.CurrentPos);
+                        map.NodeContainer.NodesFloorRaw.Add(currentPosition);
 
                         if (map.Verbose)
-                            Console.WriteLine($"Added node at {map.CurrentPos.x}, {map.CurrentPos.y} (total {map.NodeContainer.NodesFloorRaw.Count}/{map.Length})");
+                            Console.WriteLine($"Added node at {currentPosition.x}, {currentPosition.y} (total {map.NodeContainer.NodesFloorRaw.Count}/{map.Length})");
                     }
                     else
                     {
                         hitFloorCount++;
                         if (map.Verbose)
-                            Console.WriteLine($"Position {map.CurrentPos.x}, {map.CurrentPos.y} already occupied. Hit count: {hitFloorCount}");
+                            Console.WriteLine($"Position {currentPosition.x}, {currentPosition.y} already occupied. Hit count: {hitFloorCount}");
                     }
 
-                    var directions = new List<(int x, int y)> { (1, 0), (-1, 0), (0, 1), (0, -1) };
+                    var directions = new List<Vect2D> { new Vect2D(1, 0), new Vect2D(-1, 0), new Vect2D(0, 1), new Vect2D(0, -1) };
                     var dir = directions[map.RNG.Next(directions.Count)];
 
                     if (hitFloorCount < 2)
-                        map.CurrentPos = (map.CurrentPos.x + dir.x, map.CurrentPos.y + dir.y);
+                        currentPosition = new Vect2D(currentPosition.x + dir.x, currentPosition.y + dir.y);
                     else
-                        while (map.NodeContainer.NodesFloorRaw.Contains(map.CurrentPos))
-                            map.CurrentPos = (map.CurrentPos.x + dir.x, map.CurrentPos.y + dir.y);
+                        while (map.NodeContainer.NodesFloorRaw.Contains(currentPosition))
+                            currentPosition = new Vect2D(currentPosition.x + dir.x, currentPosition.y + dir.y);
 
                     if (map.NodeContainer.NodesFloorRaw.Count % 1_000_000 == 0)
                         Console.WriteLine($"Progress: {map.NodeContainer.NodesFloorRaw.Count / 1_000_000}/{map.Length / 1_000_000} 1-million packs generated...");
@@ -69,7 +70,7 @@ namespace MapGeneratorCs
             {
                 Console.WriteLine("Filling Default Nodes to NodeContainer.NodesGenerate...");
 
-                var candidates = new List<(int x, int y)>();
+                var candidates = new List<Vect2D>();
                 foreach (var p in map.NodeContainer.NodesFloorRaw)
                     if (!map.NodeContainer.NodesGenerate.ContainsKey(p)) candidates.Add(p);
 
@@ -94,14 +95,14 @@ namespace MapGeneratorCs
                 }
             }
 
-            private static bool IsGenerateNodesRadiusOccupied(MapConstructor map, (int x, int y) position, int radius)
+            private static bool IsGenerateNodesRadiusOccupied(MapConstructor map, Vect2D position, int radius)
             {
                 for (int dx = -radius; dx <= radius; dx++)
                 {
                     for (int dy = -radius; dy <= radius; dy++)
                     {
                         if (dx == 0 && dy == 0) continue;
-                        var p = (position.x + dx, position.y + dy);
+                        var p = new Vect2D(position.x + dx, position.y + dy);
                         if (map.NodeContainer.NodesGenerate.TryGetValue(p, out var node) &&
                             node != TileSpawnType.Default)
                             return true;
@@ -140,14 +141,14 @@ namespace MapGeneratorCs
                 int offsetX = map.Padding - minX + map.Thickness;
                 int offsetY = map.Padding - minY + map.Thickness;
 
-                var repositioned = new HashSet<(int x, int y)>();
+                var repositioned = new HashSet<Vect2D>();
                 foreach (var p in map.NodeContainer.NodesFloorRaw)
-                    repositioned.Add((p.x + offsetX, p.y + offsetY));
+                    repositioned.Add(new Vect2D(p.x + offsetX, p.y + offsetY));
                 map.NodeContainer.NodesFloorRaw = repositioned;
 
-                var newDict = new Dictionary<(int x, int y), TileSpawnType>();
+                var newDict = new Dictionary<Vect2D, TileSpawnType>();
                 foreach (var kv in map.NodeContainer.NodesGenerate)
-                    newDict[(kv.Key.x + offsetX, kv.Key.y + offsetY)] = kv.Value;
+                    newDict[new Vect2D(kv.Key.x + offsetX, kv.Key.y + offsetY)] = kv.Value;
                 map.NodeContainer.NodesGenerate = newDict;
             }
 
@@ -161,13 +162,13 @@ namespace MapGeneratorCs
                     return;
                 }
 
-                var result = new HashSet<(int x, int y)>();
+                var result = new HashSet<Vect2D>();
                 foreach (var p in map.NodeContainer.NodesFloorRaw)
                 {
                     for (int dx = -map.Thickness; dx <= map.Thickness; dx++)
                         for (int dy = -map.Thickness; dy <= map.Thickness; dy++)
                             if (dx * dx + dy * dy <= map.Thickness * map.Thickness)
-                                result.Add((p.x + dx, p.y + dy));
+                                result.Add(new Vect2D(p.x + dx, p.y + dy));
 
                     if (result.Count % 1_000_000 == 0)
                         Console.WriteLine($"Progress: {result.Count / 1_000_000}/{map.Length / 1_000_000} 1-million packs generated...");

@@ -8,7 +8,6 @@ namespace MapGeneratorCs
     partial class MapConstructor
     {
         private readonly bool ENABLE_DETAILED_LOGGING;
-        private (int x, int y) currentPosition;
         private Random random;
         public struct SpawnWeights
         {
@@ -39,13 +38,13 @@ namespace MapGeneratorCs
         public class NodeContainerData
         {
             [JsonInclude]
-            public HashSet<(int x, int y)> NodesFloor { get; set; } = new();
+            public HashSet<Vect2D> NodesFloor { get; set; } = new();
             [JsonInclude]
-            public HashSet<(int x, int y)> NodesFloorRaw { get; set; } = new();
+            public HashSet<Vect2D> NodesFloorRaw { get; set; } = new();
             [JsonInclude]
-            public Dictionary<(int x, int y), TileSpawnType> NodesGenerate { get; set; } = new();
+            public Dictionary<Vect2D, TileSpawnType> NodesGenerate { get; set; } = new();
             [JsonInclude]
-            public Dictionary<(int x, int y), TileSpawnType> NodesObjects { get; set; } = new();
+            public Dictionary<Vect2D, TileSpawnType> NodesObjects { get; set; } = new();
         }
 
         public NodeContainerData NodeContainer;
@@ -63,7 +62,7 @@ namespace MapGeneratorCs
         public MapConstructor(bool enableDetailedLogging = true)
         {
 
-            ConfigLoader.InitConfigFiles("config");
+            ConfigLoader.InitConfigFiles("config", "export", false);
             this.mapWeights = ConfigLoader.LoadMapWeights();
             this.spawnWeights = ConfigLoader.LoadSpawnWeights();
             this.random = new Random(mapWeights.Seed ?? new Random().Next());
@@ -71,10 +70,10 @@ namespace MapGeneratorCs
 
             NodeContainer = new NodeContainerData
             {
-                NodesFloor = new HashSet<(int x, int y)>(),
-                NodesFloorRaw = new HashSet<(int x, int y)>(),
-                NodesGenerate = new Dictionary<(int x, int y), TileSpawnType>(),
-                NodesObjects = new Dictionary<(int x, int y), TileSpawnType>()
+                NodesFloor = new HashSet<Vect2D>(),
+                NodesFloorRaw = new HashSet<Vect2D>(),
+                NodesGenerate = new Dictionary<Vect2D, TileSpawnType>(),
+                NodesObjects = new Dictionary<Vect2D, TileSpawnType>()
             };
         }
 
@@ -105,13 +104,16 @@ namespace MapGeneratorCs
             IntMapBuilder.BuildFromNodes(this);
             IntMapBuilder.SaveToImage(this, "export/" + "map_output.png");
         }
-
         public void SaveMapAsJson()
         {
             IntMapBuilder.BuildFromNodes(this);
-            IntMapBuilder.SaveToJson(this, "export/" + "map_output.json");
+            JsonMapBuilder.SaveMapAsJson(this, "export/" + "map_output.json");
         }
-        
+
+        public void LoadMapFromJson(string filePath = "export/map_output.json")
+        {
+            JsonMapBuilder.LoadMapFromJson(this, filePath);
+        }
 
         // Expose internals to helper classes
         internal Random RNG => random;
@@ -122,7 +124,6 @@ namespace MapGeneratorCs
         internal (bool isBoss, bool isQuest) SpawnTypeFlags => (mapWeights.FlagBoss, mapWeights.FlagQuest);
         internal SpawnWeights SpawnWeightValues => spawnWeights;
         internal int[,]? Grid => TileMap2D;
-        internal ref (int x, int y) CurrentPos => ref currentPosition;
         internal bool Verbose => ENABLE_DETAILED_LOGGING;
     }
 }
