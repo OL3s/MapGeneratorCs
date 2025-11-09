@@ -37,13 +37,9 @@ namespace MapGeneratorCs
 
         public class NodeContainerData
         {
-            [JsonInclude]
             public HashSet<Vect2D> NodesFloor { get; set; } = new();
-            [JsonInclude]
             public HashSet<Vect2D> NodesFloorRaw { get; set; } = new();
-            [JsonInclude]
             public Dictionary<Vect2D, TileSpawnType> NodesGenerate { get; set; } = new();
-            [JsonInclude]
             public Dictionary<Vect2D, TileSpawnType> NodesObjects { get; set; } = new();
         }
 
@@ -108,6 +104,12 @@ namespace MapGeneratorCs
         {
             IntMapBuilder.BuildFromNodes(this);
             JsonMapBuilder.SaveMapAsJson(this, filePath);
+        }
+        public void SaveAll() 
+        {
+            IntMapBuilder.BuildFromNodes(this);
+            IntMapBuilder.SaveToImage(this, "export/map_output.png", includeGenerateNodes: false);
+            JsonMapBuilder.SaveMapAsJson(this, "export/map_output.json");
         }
 
         public void LoadMapFromJson(string filePath = "export/map_output.json")

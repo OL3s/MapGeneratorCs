@@ -56,8 +56,7 @@ namespace MapGeneratorCs
                         break;
                     case "--all":
                         map.GenerateMap();
-                        map.SaveMapAsJson();
-                        map.SaveMapAsImage();
+                        map.SaveAll();
                         break;
                     default:
                         Console.WriteLine($"Unknown command: {args[0]}\nType --help for a list of commands.");
