@@ -98,7 +98,7 @@ public static class PathFindingUtils
     {
         foreach (var node in pathNodes.Values)
         {
-            node.Value = null;
+            node.Cost = null;
         }
     }
 
@@ -109,7 +109,7 @@ public static class PathFindingUtils
 
         ResetPathNodeValues(pathNodes);
         var startNode = pathNodes[startPosition];
-        startNode.Value = 0;
+        startNode.Cost = 0;
 
         var queue = new Queue<PathNode>();
         queue.Enqueue(startNode);
@@ -119,16 +119,17 @@ public static class PathFindingUtils
             var currentNode = queue.Dequeue();
             foreach (var neighbour in currentNode.Neighbours)
             {
-            // Only process neighbours that haven't been discovered yet (Value is null)
-            if (neighbour.Value != null)
-                continue;
+                // Only process neighbours that haven't been discovered yet (Cost is null)
+                if (neighbour.Cost != null)
+                    continue;
 
-            if (currentNode.Value == null)
-                continue;
-
-            float tentativeValue = currentNode.Value.Value + 1 + GetObjectWeight(neighbour.Type);
-            neighbour.Value = tentativeValue;
-            queue.Enqueue(neighbour);
+                // Calculate tentative cost to reach neighbour
+                if (currentNode.Cost == null)
+                    continue;
+                    
+                float tentativeValue = (float)currentNode.Cost + 1 + GetObjectWeight(neighbour.Type);
+                neighbour.Cost = tentativeValue;
+                queue.Enqueue(neighbour);
             }
         }
     }
@@ -136,13 +137,15 @@ public static class PathFindingUtils
 
 public class PathNode
 {
-    public float? Value = null;
+    public float Weight = 1.0f;
+    public float? Cost = null;
     public TileSpawnType Type = TileSpawnType.Default;
     public HashSet<PathNode> Neighbours = new HashSet<PathNode>();
     public PathNode(HashSet<PathNode> neighbours, TileSpawnType type)
     {
         Neighbours = neighbours;
         Type = type;
+        Weight = PathFindingUtils.GetObjectWeight(type);
     }
     public PathNode() { }
 }
@@ -194,7 +197,7 @@ public static class ImageConverter
                     var pos = new Vect2D(x, y);
                     if (adjustedPathNodes.TryGetValue(pos, out var node))
                     {
-                        byte intensity = node.Value.HasValue ? (byte)Math.Clamp((int)(255 - node.Value.Value), 0, 255) : (byte)0;
+                        byte intensity = node.Cost.HasValue ? (byte)Math.Clamp((int)(255 - node.Cost.Value), 0, 255) : (byte)0;
                         image[x, y] = new Rgba32(intensity, intensity, intensity);
                     }
                     else
