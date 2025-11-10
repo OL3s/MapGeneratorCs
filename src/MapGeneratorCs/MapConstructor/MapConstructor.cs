@@ -1,125 +1,80 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text.Json.Serialization;
+﻿namespace MapGeneratorCs;
 
-namespace MapGeneratorCs
+public class MapConstructor
 {
-    // === Main Map Constructor Class (core) ===
-    public partial class MapConstructor
+    internal Random random;
+
+    public SpawnWeights spawnWeights;
+    public MapConfig mapConfig;
+    internal int padding = 1;
+    public NodeContainerData NodeContainer { get; set; } = new NodeContainerData();
+
+    public MapConstructor()
     {
-        internal Random random;
-        public struct SpawnWeights
-        {
-            public int enemy { get; set; }
-            public int landmark { get; set; }
-            public int treasure { get; set; }
-            public int _default { get; set; }
-            public int empty { get; set; }
-            public int trap { get; set; }
-            public int props { get; set; }
-        }
-        public SpawnWeights spawnWeights;
-        public struct MapConfig
-        {
 
-            public int Length { get; set; } = 1000;
-            public int CollisionRadius { get; set; } = 5;
-            public int Thickness { get; set; } = 1;
-            public int? Seed { get; set; } = null;
-            public bool FlagBoss { get; set; } = true;
-            public bool FlagQuest { get; set; } = true;
-            public MapConfig() { }
-        }
-        public MapConfig mapConfig;
-        internal int padding = 1;
+        ConfigLoader.InitConfigFiles();
+        random = new Random();
+    }
 
-        public class NodeContainerData
-        {
-            public HashSet<Vect2D> NodesFloor { get; set; } = new();
-            public HashSet<Vect2D> NodesFloorRaw { get; set; } = new();
-            public Dictionary<Vect2D, TileSpawnType> NodesGenerate { get; set; } = new();
-            public Dictionary<Vect2D, TileSpawnType> NodesObjects { get; set; } = new();
-        }
+    public void GenerateMap()
+    {
+        // Start details
+        Console.WriteLine("Starting Map Generation...");
+        this.mapConfig = ConfigLoader.LoadMapConfig();
+        this.spawnWeights = ConfigLoader.LoadSpawnWeights();
+        this.random = (mapConfig.Seed == null) ? this.random : new Random((int)mapConfig.Seed);
 
-        public NodeContainerData NodeContainer { get; set; } = new NodeContainerData();
-        public struct Vect2D
-        {
-            public int x;
-            public int y;
-            public Vect2D(int x, int y)
-            {
-                this.x = x;
-                this.y = y;
-            }
-        }
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
-        public MapConstructor()
-        {
+        // Init generation
+        GenerationBasics.GenerateDefaultAndFlaggedNotes(this);
+        GenerationBasics.FillDefaultNodesWithTypeNodes(this);
+        ObjectGenerator.GenerateObjectNodes(this);
 
-            ConfigLoader.InitConfigFiles();
-            random = new Random();
-        }
-
-        public void GenerateMap()
-        {
-            // Start details
-            Console.WriteLine("Starting Map Generation...");
-            this.mapConfig = ConfigLoader.LoadMapConfig();
-            this.spawnWeights = ConfigLoader.LoadSpawnWeights();
-            this.random = (mapConfig.Seed == null) ? this.random : new Random((int)mapConfig.Seed);
-
-            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-
-            // Init generation
-            GenerationBasics.GenerateDefaultAndFlaggedNotes(this);
-            GenerationBasics.FillDefaultNodesWithTypeNodes(this);
-            ObjectGenerator.GenerateObjectNodes(this);
-
-            // Finalize details
-            stopwatch.Stop();
-            Console.WriteLine("\n=== Generated Map Statistics ===\n"
-                + $"Floor nodes           {NodeContainer.NodesFloor.Count,6} stk\n"
-                + $"Raw floor nodes       {NodeContainer.NodesFloorRaw.Count,6} stk\n"
-                + $"Parent nodes          {NodeContainer.NodesGenerate.Count,6} stk\n"
-                + $"Object nodes          {NodeContainer.NodesObjects.Count,6} stk\n"
-                + $"Generation time       {stopwatch.ElapsedMilliseconds,6} .ms\n");
-
-        }
-
-
-        public void ResetConfigToDefaults()
-        {
-            ConfigLoader.InitConfigFiles(overwriteExisting: true);
-        }
-        public void SaveMapAsImage(string filePath = "export/map_output.png")
-        {
-            var grid = IntMapBuilder.CreateGridFromMap(this);
-            IntMapBuilder.SaveGridToImage(grid, filePath, includeGenerateNodes: false);
-        }
-        public void SaveMapAsJson(string filePath = "export/map_output.json")
-        {
-            JsonMapBuilder.SaveMapAsJson(this, filePath);
-        }
-        public void SaveAll() 
-        {
-            var grid = IntMapBuilder.CreateGridFromMap(this);
-            IntMapBuilder.SaveGridToImage(grid, "export/map_output.png", includeGenerateNodes: false);
-            JsonMapBuilder.SaveMapAsJson(this, "export/map_output.json");
-        }
-        public void LoadMapFromJson(string filePath = "export/map_output.json")
-        {
-            var loaded = JsonMapBuilder.LoadMapFromJson(filePath);
-            // Copy loaded data into this instance
-            this.NodeContainer = loaded.NodeContainer;
-            this.mapConfig = loaded.mapConfig;
-            this.spawnWeights = loaded.spawnWeights;
-            this.random = loaded.random;
-            this.padding = loaded.padding;
-        }
-        public void ClearAllData()
-        {
-            ConfigLoader.DeleteAll();
-        }
+        // Finalize details
+        stopwatch.Stop();
+        Console.WriteLine("\n=== Generated Map Statistics ===\n"
+            + $"Floor nodes           {NodeContainer.NodesFloor.Count,6} stk\n"
+            + $"Raw floor nodes       {NodeContainer.NodesFloorRaw.Count,6} stk\n"
+            + $"Parent nodes          {NodeContainer.NodesGenerate.Count,6} stk\n"
+            + $"Object nodes          {NodeContainer.NodesObjects.Count,6} stk\n"
+            + $"Generation time       {stopwatch.ElapsedMilliseconds,6} .ms\n");
 
     }
+
+
+    public void ResetConfigToDefaults()
+    {
+        ConfigLoader.InitConfigFiles(overwriteExisting: true);
+    }
+    public void SaveMapAsImage(string filePath = "export/map_output.png")
+    {
+        var grid = IntMapBuilder.CreateGridFromMap(this);
+        IntMapBuilder.SaveGridToImage(grid, filePath, includeGenerateNodes: false);
+    }
+    public void SaveMapAsJson(string filePath = "export/map_output.json")
+    {
+        JsonMapBuilder.SaveMapAsJson(this, filePath);
+    }
+    public void SaveAll() 
+    {
+        var grid = IntMapBuilder.CreateGridFromMap(this);
+        IntMapBuilder.SaveGridToImage(grid, "export/map_output.png", includeGenerateNodes: false);
+        JsonMapBuilder.SaveMapAsJson(this, "export/map_output.json");
+    }
+    public void LoadMapFromJson(string filePath = "export/map_output.json")
+    {
+        var loaded = JsonMapBuilder.LoadMapFromJson(filePath);
+        // Copy loaded data into this instance
+        this.NodeContainer = loaded.NodeContainer;
+        this.mapConfig = loaded.mapConfig;
+        this.spawnWeights = loaded.spawnWeights;
+        this.random = loaded.random;
+        this.padding = loaded.padding;
+    }
+    public void ClearAllData()
+    {
+        ConfigLoader.DeleteAll();
+    }
+
 }
