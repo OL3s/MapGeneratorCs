@@ -1,3 +1,5 @@
+
+using MapGeneratorCs.Types;
 namespace MapGeneratorCs.PathFinding;
 
 public static class PathFindingTools
@@ -26,6 +28,10 @@ public class PathFindingDynamic
         public float? Value = null;
         public TileSpawnType Type;
         public PathNode[] Neighbours;
+        public PathNode(PathNode[] neighbours, TileSpawnType type) {
+            Neighbours = neighbours;
+            Type = type;
+        }
     }
     public float GetObjectWeight(TileSpawnType nodeType)
     {

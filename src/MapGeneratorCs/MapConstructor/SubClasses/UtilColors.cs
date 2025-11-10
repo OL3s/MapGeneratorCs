@@ -1,5 +1,5 @@
+using MapGeneratorCs.Types;
 using SixLabors.ImageSharp.PixelFormats;
-
 namespace MapGeneratorCs.Utils;
 
 public static class TileColorUtils

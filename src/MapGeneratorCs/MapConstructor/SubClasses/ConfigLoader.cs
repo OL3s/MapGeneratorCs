@@ -1,5 +1,7 @@
 using System.Text.Json;
 
+using MapGeneratorCs.Types;
+using MapGeneratorCs.Utils;
 namespace MapGeneratorCs.Utils;
 public static class ConfigLoader
 {

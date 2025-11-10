@@ -1,5 +1,6 @@
 using System.Text.Json;
 
+using MapGeneratorCs.Types;
 namespace MapGeneratorCs.Utils;
 public static class JsonMapBuilder
 {

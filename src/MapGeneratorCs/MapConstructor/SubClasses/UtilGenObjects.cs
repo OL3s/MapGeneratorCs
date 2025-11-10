@@ -1,4 +1,35 @@
+
+using MapGeneratorCs.Types;
 namespace MapGeneratorCs.Utils;
+
+public struct GenerateObjectWeights
+{
+    public int EmptyWeight { get; set; }
+    public int PropWeight { get; set; }
+    public int EnemyWeight { get; set; }
+    public int LandmarkWeight { get; set; }
+    public int TreasureWeight { get; set; }
+    public int TrapWeight { get; set; }
+    public int DefaultWeight { get; set; }
+    public int TotalWeight => PropWeight + EnemyWeight + LandmarkWeight + TreasureWeight + TrapWeight + EmptyWeight + DefaultWeight;
+    public TileSpawnType GetRandomObject(Random rng)
+    {
+        if (TotalWeight <= 0)
+            return TileSpawnType.Empty;
+        int roll = rng.Next(TotalWeight);
+        if (roll < EmptyWeight) return TileSpawnType.Empty;
+        roll -= EmptyWeight;
+        if (roll < PropWeight) return TileSpawnType.PropObject;
+        roll -= PropWeight;
+        if (roll < EnemyWeight) return TileSpawnType.EnemyObject;
+        roll -= EnemyWeight;
+        if (roll < LandmarkWeight) return TileSpawnType.LandmarkObject;
+        roll -= LandmarkWeight;
+        if (roll < TreasureWeight) return TileSpawnType.TreasureObject;
+        roll -= TreasureWeight;
+        return TileSpawnType.TrapObject;
+    }
+}
 
 public static class ObjectGenerator
 {
@@ -114,34 +145,5 @@ public static class ObjectGenerator
             }
         }
         return outTiles;
-    }
-
-    public struct GenerateObjectWeights
-    {
-        public int EmptyWeight { get; set; }
-        public int PropWeight { get; set; }
-        public int EnemyWeight { get; set; }
-        public int LandmarkWeight { get; set; }
-        public int TreasureWeight { get; set; }
-        public int TrapWeight { get; set; }
-        public int DefaultWeight { get; set; }
-        public int TotalWeight => PropWeight + EnemyWeight + LandmarkWeight + TreasureWeight + TrapWeight + EmptyWeight + DefaultWeight;
-        public TileSpawnType GetRandomObject(Random rng)
-        {
-            if (TotalWeight <= 0)
-                return TileSpawnType.Empty;
-            int roll = rng.Next(TotalWeight);
-            if (roll < EmptyWeight) return TileSpawnType.Empty;
-            roll -= EmptyWeight;
-            if (roll < PropWeight) return TileSpawnType.PropObject;
-            roll -= PropWeight;
-            if (roll < EnemyWeight) return TileSpawnType.EnemyObject;
-            roll -= EnemyWeight;
-            if (roll < LandmarkWeight) return TileSpawnType.LandmarkObject;
-            roll -= LandmarkWeight;
-            if (roll < TreasureWeight) return TileSpawnType.TreasureObject;
-            roll -= TreasureWeight;
-            return TileSpawnType.TrapObject;
-        }
     }
 }

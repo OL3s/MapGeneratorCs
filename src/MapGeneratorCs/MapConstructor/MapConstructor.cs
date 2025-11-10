@@ -1,4 +1,7 @@
-﻿namespace MapGeneratorCs;
+﻿
+using MapGeneratorCs.Types;
+using MapGeneratorCs.Utils;
+namespace MapGeneratorCs;
 
 public class MapConstructor
 {
@@ -27,8 +30,8 @@ public class MapConstructor
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
         // Init generation
-        GenerationBasics.GenerateDefaultAndFlaggedNotes(this);
-        GenerationBasics.FillDefaultNodesWithTypeNodes(this);
+    BasicBuilder.GenerateDefaultAndFlaggedNotes(this);
+    BasicBuilder.FillDefaultNodesWithTypeNodes(this);
         ObjectGenerator.GenerateObjectNodes(this);
 
         // Finalize details

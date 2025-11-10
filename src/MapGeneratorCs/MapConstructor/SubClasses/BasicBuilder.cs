@@ -1,3 +1,4 @@
+using MapGeneratorCs.Types;
 namespace MapGeneratorCs.Utils;
 public static class BasicBuilder
 {
