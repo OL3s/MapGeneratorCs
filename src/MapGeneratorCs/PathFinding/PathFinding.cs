@@ -1,47 +1,27 @@
-
 using MapGeneratorCs.Types;
+using MapGeneratorCs.PathFinding.Utils;
 namespace MapGeneratorCs.PathFinding;
 
-public static class PathFindingTools
-{
-    public static float GetObjectWeight(TileSpawnType nodeType){
-        return nodeType switch
-        {
-            TileSpawnType.TrapObject => 10,
-            TileSpawnType.TreasureObject => 20,
-            TileSpawnType.LandmarkObject => 400,
-            TileSpawnType.PropObject => 20,
-            _ => 0
-        };
-    }
-}
+// Fast static pathfinding with instant results using Astar algorithm
 public static class PathFindingStatic
 {
 
 }
 
+// Dynamic pathfinding with cached nodes for easy updates and searches, but slower performance
 public class PathFindingDynamic
 {
-    Dictionary<Vect2D, PathNode> Nodes = new Dictionary<Vect2D, PathNode>();
-    public class PathNode
+    public Dictionary<Vect2D, PathNode> PathNodes = new Dictionary<Vect2D, PathNode>();
+    private bool hasBeenUpdatedAtleastOnce = false;
+    public PathFindingDynamic(NodeContainerData nodeContainer)
     {
-        public float? Value = null;
-        public TileSpawnType Type;
-        public PathNode[] Neighbours;
-        public PathNode(PathNode[] neighbours, TileSpawnType type) {
-            Neighbours = neighbours;
-            Type = type;
-        }
+        PathNodes = PathFindingUtils.CreatePathNodesFromMap(nodeContainer);
     }
-    public float GetObjectWeight(TileSpawnType nodeType)
-    {
-        return nodeType switch
-        {
-            TileSpawnType.TrapObject => 10,
-            TileSpawnType.TreasureObject => 20,
-            TileSpawnType.LandmarkObject => 400,
-            TileSpawnType.PropObject => 20,
-            _ => 0
-        };
+
+    public void Update(Vect2D startPosition) {
+        if (!hasBeenUpdatedAtleastOnce)
+            hasBeenUpdatedAtleastOnce = true;
+
+        PathFindingUtils.UpdateAllPathNodesFromPosition(PathNodes, startPosition);
     }
 }

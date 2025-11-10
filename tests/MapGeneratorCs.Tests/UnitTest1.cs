@@ -51,6 +51,12 @@ public class MapConstructorTests
         // Clean up
         map.ClearAllData();
     }
+
+    [Fact]
+    public void PathFinding_Test()
+    {
+        
+    }
     
     
 }

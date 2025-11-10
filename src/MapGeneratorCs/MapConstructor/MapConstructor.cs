@@ -30,9 +30,9 @@ public class MapConstructor
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
         // Init generation
-    BasicBuilder.GenerateDefaultAndFlaggedNotes(this);
-    BasicBuilder.FillDefaultNodesWithTypeNodes(this);
-        ObjectGenerator.GenerateObjectNodes(this);
+        BasicBuilder.GenerateDefaultAndFlaggedNotes(this);
+        BasicBuilder.FillDefaultNodesWithTypeNodes(this);
+        ObjectBuilder.GenerateObjectNodes(this);
 
         // Finalize details
         stopwatch.Stop();
