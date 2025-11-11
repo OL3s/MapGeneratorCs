@@ -28,6 +28,7 @@ public class NodeContainerData
     public HashSet<Vect2D> NodesFloorRaw { get; set; } = new();
     public Dictionary<Vect2D, TileSpawnType> NodesGenerate { get; set; } = new();
     public Dictionary<Vect2D, TileSpawnType> NodesObjects { get; set; } = new();
+    public NodeContainerData() { }
 }
 
 public struct Vect2D
