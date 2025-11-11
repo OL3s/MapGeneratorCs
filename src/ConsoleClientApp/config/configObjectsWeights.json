@@ -1,0 +1,102 @@
+{
+  "9": {
+    "EmptyWeight": 2,
+    "PropWeight": 1,
+    "EnemyWeight": 0,
+    "LandmarkWeight": 0,
+    "TreasureWeight": 0,
+    "TrapWeight": 0,
+    "DefaultWeight": 0,
+    "TotalWeight": 3
+  },
+  "5": {
+    "EmptyWeight": 4,
+    "PropWeight": 1,
+    "EnemyWeight": 0,
+    "LandmarkWeight": 0,
+    "TreasureWeight": 0,
+    "TrapWeight": 0,
+    "DefaultWeight": 0,
+    "TotalWeight": 5
+  },
+  "6": {
+    "EmptyWeight": 5,
+    "PropWeight": 1,
+    "EnemyWeight": 0,
+    "LandmarkWeight": 0,
+    "TreasureWeight": 0,
+    "TrapWeight": 0,
+    "DefaultWeight": 0,
+    "TotalWeight": 6
+  },
+  "4": {
+    "EmptyWeight": 5,
+    "PropWeight": 2,
+    "EnemyWeight": 0,
+    "LandmarkWeight": 0,
+    "TreasureWeight": 1,
+    "TrapWeight": 0,
+    "DefaultWeight": 0,
+    "TotalWeight": 8
+  },
+  "11": {
+    "EmptyWeight": 1,
+    "PropWeight": 1,
+    "EnemyWeight": 0,
+    "LandmarkWeight": 0,
+    "TreasureWeight": 0,
+    "TrapWeight": 10,
+    "DefaultWeight": 0,
+    "TotalWeight": 12
+  },
+  "10": {
+    "EmptyWeight": 12,
+    "PropWeight": 1,
+    "EnemyWeight": 0,
+    "LandmarkWeight": 0,
+    "TreasureWeight": 0,
+    "TrapWeight": 0,
+    "DefaultWeight": 0,
+    "TotalWeight": 13
+  },
+  "7": {
+    "EmptyWeight": 0,
+    "PropWeight": 0,
+    "EnemyWeight": 0,
+    "LandmarkWeight": 0,
+    "TreasureWeight": 0,
+    "TrapWeight": 0,
+    "DefaultWeight": 0,
+    "TotalWeight": 0
+  },
+  "8": {
+    "EmptyWeight": 5,
+    "PropWeight": 1,
+    "EnemyWeight": 0,
+    "LandmarkWeight": 0,
+    "TreasureWeight": 0,
+    "TrapWeight": 0,
+    "DefaultWeight": 0,
+    "TotalWeight": 6
+  },
+  "2": {
+    "EmptyWeight": 0,
+    "PropWeight": 0,
+    "EnemyWeight": 0,
+    "LandmarkWeight": 0,
+    "TreasureWeight": 0,
+    "TrapWeight": 0,
+    "DefaultWeight": 0,
+    "TotalWeight": 0
+  },
+  "3": {
+    "EmptyWeight": 0,
+    "PropWeight": 0,
+    "EnemyWeight": 0,
+    "LandmarkWeight": 0,
+    "TreasureWeight": 0,
+    "TrapWeight": 0,
+    "DefaultWeight": 0,
+    "TotalWeight": 0
+  }
+}

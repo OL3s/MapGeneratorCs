@@ -1,0 +1,9 @@
+{
+  "enemy": 100,
+  "landmark": 20,
+  "treasure": 20,
+  "_default": 100,
+  "empty": 50,
+  "trap": 20,
+  "props": 20
+}
