@@ -1,4 +1,3 @@
-
 using MapGeneratorCs.Types;
 namespace MapGeneratorCs.Utils;
 
@@ -9,14 +8,16 @@ public static class ObjectBuilder
     {
         Console.WriteLine("Converting Generate Nodes to Object Nodes in NodeContainer.NodesObjects...");
         Dictionary<int, GenerateObjectWeights> config = ConfigLoader.LoadObjectWeights();
+        (int i, int p) count = (0, 0);
 
         foreach (var kvp in map.NodeContainer.NodesGenerate)
         {
             var position = kvp.Key;
             var generateType = kvp.Value;
-            if (!config.ContainsKey((int)generateType))
-                continue;
-            GenerateObjectsRandomWeighted(map, position, config[(int)generateType]);
+
+            // call only when config entry exists (use TryGetValue to avoid double lookup)
+            if (config.TryGetValue((int)generateType, out var spawnWeights))
+                GenerateObjectsRandomWeighted(map, position, spawnWeights);
 
             switch (generateType)
             {
@@ -58,6 +59,13 @@ public static class ObjectBuilder
                     GenerateObjectsRandomCount(map, position, TileSpawnType.EndObject, 1);
                     break;
             }
+
+            count.i++;
+            if (count.i % 100_000 == 0)
+            {
+                count.p++;
+                Console.WriteLine($"Progress: {count.p} hundred-thousand object nodes processed...");
+            }
         }
     }
 
@@ -86,14 +94,6 @@ public static class ObjectBuilder
             if (objType != TileSpawnType.Empty && !map.NodeContainer.NodesObjects.ContainsKey(spawnPos))
                 map.NodeContainer.NodesObjects[spawnPos] = objType;
             possiblePositions.Remove(spawnPos);
-        }
-    }
-
-    private static void GenerateObject(MapConstructor map, Vect2D position, TileSpawnType objType, bool forceSpawn = false)
-    {
-        if (forceSpawn || !map.NodeContainer.NodesObjects.ContainsKey(position))
-        {
-            map.NodeContainer.NodesObjects[position] = objType;
         }
     }
 

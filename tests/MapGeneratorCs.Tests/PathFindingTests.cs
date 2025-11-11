@@ -170,6 +170,7 @@ public class PathFindingTests
     [Fact]
     public void Finds_CostOptimal_Path_With_Penalties()
     {
+        PathFinding.Utils.PathFindingUtils.IncludeTimerLog = true;
         var container = new NodeContainerData();
         // 3x1 corridor and an alternative 3x2 detour
         for (int x = 0; x < 3; x++)
@@ -192,6 +193,7 @@ public class PathFindingTests
     [Fact]
     public void Path_Does_Not_Work_On_Diagonal_With_Border_Collision()
     {
+        PathFinding.Utils.PathFindingUtils.IncludeTimerLog = true;
         var container = new NodeContainerData();
         // "Plus" formation: top, center and right exist, but top-right corner (2,0) is missing.
         // Start at top (1,0) -> goal at right (2,1).

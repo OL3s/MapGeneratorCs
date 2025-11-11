@@ -1,13 +1,14 @@
 namespace MapGeneratorCs.Types;
 public struct SpawnWeights
 {
-    public int enemy { get; set; }
-    public int landmark { get; set; }
-    public int treasure { get; set; }
-    public int _default { get; set; }
-    public int empty { get; set; }
-    public int trap { get; set; }
-    public int props { get; set; }
+    public int enemy { get; set; } = 100;
+    public int landmark { get; set; } = 20;
+    public int treasure { get; set; } = 20;
+    public int _default { get; set; } = 100;
+    public int empty { get; set; } = 50;
+    public int trap { get; set; } = 20;
+    public int props { get; set; } = 20;
+    public SpawnWeights() { }
 }
 
 public struct MapConfig
@@ -31,15 +32,24 @@ public class NodeContainerData
     public NodeContainerData() { }
 }
 
-public struct Vect2D
+public readonly struct Vect2D : IEquatable<Vect2D>
 {
-    public int x;
-    public int y;
+    public readonly int x;
+    public readonly int y;
     public Vect2D(int x, int y)
     {
         this.x = x;
         this.y = y;
     }
+
+    public bool Equals(Vect2D other) => x == other.x && y == other.y;
+    public override bool Equals(object? obj) => obj is Vect2D other && Equals(other);
+    public override int GetHashCode() => System.HashCode.Combine(x, y);
+
+    public static bool operator ==(Vect2D left, Vect2D right) => left.Equals(right);
+    public static bool operator !=(Vect2D left, Vect2D right) => !left.Equals(right);
+
+    public override string ToString() => $"{x},{y}";
 }
 
 public enum TileSpawnType

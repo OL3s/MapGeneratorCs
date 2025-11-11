@@ -1,8 +1,9 @@
 using MapGeneratorCs.Types;
 namespace MapGeneratorCs.Utils;
-public static class BasicBuilder
+public static class GeneratorBuilder
 {
     private static Vect2D currentPosition;
+    private static readonly Vect2D[] directions = new[] { new Vect2D(1,0), new Vect2D(-1,0), new Vect2D(0,1), new Vect2D(0,-1) };
     public static void GenerateDefaultAndFlaggedNotes(MapConstructor map)
     {
         var mapConfig = map.mapConfig;
@@ -17,6 +18,7 @@ public static class BasicBuilder
         currentPosition = new Vect2D(0, 0);
         int hitFloorCount = 0;
 
+        Console.WriteLine("Generating NodeContainer.NodesFloorRaw and flagged nodes...");
         while (map.NodeContainer.NodesFloorRaw.Count < mapConfig.Length)
         {
             bool isStart = map.NodeContainer.NodesFloorRaw.Count == 0;
@@ -45,8 +47,7 @@ public static class BasicBuilder
                 hitFloorCount++;
             }
 
-            var directions = new List<Vect2D> { new Vect2D(1, 0), new Vect2D(-1, 0), new Vect2D(0, 1), new Vect2D(0, -1) };
-            var dir = directions[map.random.Next(directions.Count)];
+            var dir = directions[map.random.Next(directions.Length)];
 
             if (hitFloorCount < 2)
                 currentPosition = new Vect2D(currentPosition.x + dir.x, currentPosition.y + dir.y);
@@ -58,33 +59,40 @@ public static class BasicBuilder
                 Console.WriteLine($"Progress: {map.NodeContainer.NodesFloorRaw.Count / 1_000_000}/{map.mapConfig.Length / 1_000_000} 1-million packs generated...");
         }
 
-        ApplyNodeRepositionBounds(map); // Give nodes positive coordinates
-        map.NodeContainer.NodesFloor = CreateNodeFloorThickness(map.NodeContainer.NodesFloorRaw, map.mapConfig);
+        ApplyNodeRepositionBounds(map);
+        map.NodeContainer.NodesFloor = CreateNodeFloorThickness(map.NodeContainer.NodesFloorRaw, mapConfig);
     }
 
     public static void FillDefaultNodesWithTypeNodes(MapConstructor map)
     {
         Console.WriteLine("Filling Default Nodes to NodeContainer.NodesGenerate...");
+        (int i, int p) count = (0, 0);
 
-        var candidates = new List<Vect2D>();
-        foreach (var p in map.NodeContainer.NodesFloorRaw)
-            if (!map.NodeContainer.NodesGenerate.ContainsKey(p)) candidates.Add(p);
-
-        // Fisher–Yates shuffle
-        int n = candidates.Count;
-        while (n > 1)
+        // Iterate candidates and assign types
+        foreach (var position in map.NodeContainer.NodesFloorRaw)
         {
-            int k = map.random.Next(n--);
-            (candidates[n], candidates[k]) = (candidates[k], candidates[n]);
-        }
+            // Randomly skip most nodes to create sparse noise distribution
+            if (map.random.NextDouble() > 0.1) // skip chance
+                continue;
 
-        foreach (var pos in candidates)
-        {
-            if (map.random.NextDouble() < 0.9) continue; // skip chance
-            if (IsGenerateNodesRadiusOccupied(map, pos, map.mapConfig.CollisionRadius)) continue;
+            // Skip if already assigned (flagged nodes)
+            if (map.NodeContainer.NodesGenerate.ContainsKey(position))
+                continue;
 
+            // Check surrounding generation nodes to avoid clustering
+            if (IsGenerateNodesRadiusOccupied(map, position, map.mapConfig.CollisionRadius))
+                continue;
+
+            // Assign random type based on spawn weights
             var type = GetRandomSpawnTypeFromSpawnFactors(map);
-            map.NodeContainer.NodesGenerate[pos] = type;
+            map.NodeContainer.NodesGenerate[position] = type;
+
+            // === Progress print ===
+            count.i++;
+            if (count.i % 100_000 == 0) {
+                count.p++;
+                Console.WriteLine($"Progress: {count.p} hundred-thousand nodes check assigned...");
+            }
         }
     }
 

@@ -1,30 +1,36 @@
+using System.Linq;
 using MapGeneratorCs.PathFinding;
 using MapGeneratorCs.Types;
-
 namespace MapGeneratorCs.Tests;
 
 public class PathFindingOnMapTests
 {
     // mark as integration so you can filter it out in quick runs
     [Fact]
-    public void GeneratedMap_Pathfinding_FindsPathBetweenNearbyNodes()
+    public void GeneratedMap_Pathfinding_Completes_Successfully()
     {
-        // Arrange: generate a map (deterministic if you adjust config/seed beforehand)
+        PathFinding.Utils.PathFindingUtils.IncludeTimerLog = true;
         var map = new MapConstructor();
-        map.GenerateMap(); // uses ConfigLoader to create defaults if missing
+        map.GenerateMap();
 
-        // pick two nodes that should be connected (use nearest to start to reduce flakiness)
-        var nodes = map.NodeContainer.NodesFloor.ToList();
-        Assert.True(nodes.Count >= 3, "Generated map too small for test");
+        // Find start object node
+        if (!map.NodeContainer.NodesObjects.Any(kv => kv.Value == TileSpawnType.StartObject))
+            Assert.True(false, "Generated map contains no StartObject node");
+        Vect2D start = map.NodeContainer.NodesObjects.First(kv => kv.Value == TileSpawnType.StartObject).Key;
 
-        var start = nodes[0];
-        var goalCandidate = nodes.FirstOrDefault(n => (Math.Abs(n.x - start.x) + Math.Abs(n.y - start.y)) > 2);
-        var goal = !goalCandidate.Equals(default(Vect2D)) ? goalCandidate : nodes[1];
+        // Find goal object node
+        if (!map.NodeContainer.NodesObjects.Any(kv => kv.Value == TileSpawnType.EndObject))
+            Assert.True(false, "Generated map contains no EndObject node");
+        Vect2D goal = map.NodeContainer.NodesObjects.First(kv => kv.Value == TileSpawnType.EndObject).Key;
 
-        var pg = new PathGenerator(map.NodeContainer);
+        // Check if start node and end node are on floor
+        Assert.True(map.NodeContainer.NodesFloor.Contains(start), "StartObject node is not on floor");
+        Assert.True(map.NodeContainer.NodesFloor.Contains(goal), "EndObject node is not on floor");
+
+        var pathGenerator = new PathGenerator(map.NodeContainer);
 
         // Act
-        var path = pg.FindPath(start, goal);
+        var path = pathGenerator.FindPath(start, goal);
 
         // Assert
         Assert.NotNull(path);
@@ -32,4 +38,5 @@ public class PathFindingOnMapTests
         Assert.Equal(start, path[0]);
         Assert.Equal(goal, path[^1]);
     }
+
 }

@@ -2,6 +2,7 @@ using System.Text.Json;
 using MapGeneratorCs.Types;
 
 namespace MapGeneratorCs.Utils;
+
 public static class ConfigLoader
 {
     public static T LoadConfig<T>(string filePath)
@@ -33,7 +34,7 @@ public static class ConfigLoader
     }
 
     // create config files with default values if they do not exist
-    public static void InitConfigFiles(string folderPathConfig = "config", string folderPathExport = "export", bool overwriteExisting = false)
+    public static void InitConfigFiles(string folderPathConfig = "config", string folderPathExport = "export", bool overwriteExisting = false, SpawnWeights? spawnWeights = null, MapConfig? mapConfig = null)
     {
 
         Console.WriteLine($"{(overwriteExisting ? "Overwriting" : "Checking")} config files...");
@@ -58,7 +59,7 @@ public static class ConfigLoader
 
         string mapWeightsPath = Path.Combine(folderPathConfig, "configMapConfig.json");
         if (!File.Exists(mapWeightsPath) || overwriteExisting)
-            ConfigConstructor.CreateMapWeights(mapWeightsPath);
+            ConfigConstructor.CreateMapConfig(mapWeightsPath);
     }
 
     public static void DeleteAll()
@@ -68,71 +69,79 @@ public static class ConfigLoader
             Directory.Delete("config", true);
         if (Directory.Exists("export"))
             Directory.Delete("export", true);
-        
+
     }
 
     private static class ConfigConstructor
     {
         public static void CreateObjectsWeights(string path)
         {
-
             // Create default generate object properties
             var defaultGenObjects = new Dictionary<int, GenerateObjectWeights>();
 
             // DefaultGenerator
             defaultGenObjects.Add((int)TileSpawnType.DefaultGenerator, new GenerateObjectWeights
-                { EmptyWeight = 2, PropWeight = 1 });
+            { EmptyWeight = 2, PropWeight = 1 });
 
             // EnemyGenerator
             defaultGenObjects.Add((int)TileSpawnType.EnemyGenerator, new GenerateObjectWeights
-                { EmptyWeight = 4, PropWeight = 1 });
+            { EmptyWeight = 4, PropWeight = 1 });
 
             // LandmarkGenerator
             defaultGenObjects.Add((int)TileSpawnType.LandmarkGenerator, new GenerateObjectWeights
-                { EmptyWeight = 5, PropWeight = 1, });
+            { EmptyWeight = 5, PropWeight = 1, });
 
             // TreasureGenerator
             defaultGenObjects.Add((int)TileSpawnType.TreasureGenerator, new GenerateObjectWeights
-                { EmptyWeight = 5, PropWeight = 2, TreasureWeight = 1 });
+            { EmptyWeight = 5, PropWeight = 2, TreasureWeight = 1 });
 
             // TrapGenerator
             defaultGenObjects.Add((int)TileSpawnType.TrapGenerator, new GenerateObjectWeights
-                { EmptyWeight = 1, PropWeight = 1, TrapWeight = 10 });
+            { EmptyWeight = 1, PropWeight = 1, TrapWeight = 10 });
 
             // EmptyGenerator
             defaultGenObjects.Add((int)TileSpawnType.EmptyGenerator, new GenerateObjectWeights
-                { EmptyWeight = 12, PropWeight = 1, });
+            { EmptyWeight = 12, PropWeight = 1, });
 
             // BossGenerator
             defaultGenObjects.Add((int)TileSpawnType.BossGenerator, new GenerateObjectWeights
-                { EmptyWeight = 0, PropWeight = 0 });
+            { EmptyWeight = 0, PropWeight = 0 });
 
             // QuestGenerator
             defaultGenObjects.Add((int)TileSpawnType.QuestGenerator, new GenerateObjectWeights
-                { EmptyWeight = 5, PropWeight = 1, });
+            { EmptyWeight = 5, PropWeight = 1, });
 
             // StartGenerator
             defaultGenObjects.Add((int)TileSpawnType.StartGenerator, new GenerateObjectWeights
-                { EmptyWeight = 0, PropWeight = 0 });
+            { EmptyWeight = 0, PropWeight = 0 });
+
+            // Add missing EndGenerator entry
+            defaultGenObjects.Add((int)TileSpawnType.EndGenerator, new GenerateObjectWeights
+            { EmptyWeight = 0, PropWeight = 0 });
+
+            // Check for missing (int) enteties if name ending with generator
+            foreach (TileSpawnType type in Enum.GetValues(typeof(TileSpawnType)))
+            {
+                if (type.ToString().EndsWith("Generator"))
+                {
+                    int typeInt = (int)type;
+                    if (!defaultGenObjects.ContainsKey(typeInt))
+                    {
+                        throw new MissingDataException($"Missing GenerateObjectWeights entry for TileSpawnType: {type} ({typeInt})");
+                    }
+                }
+            }
+
 
             string json = JsonSerializer.Serialize(defaultGenObjects, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(path, json);
             Console.WriteLine($"Created default generate object properties config at {path}");
         }
 
-        public static void CreateSpawnWeights(string path)
+        public static void CreateSpawnWeights(string path, SpawnWeights? spawnWeights = null)
         {
             // Create default spawn weights
-            var defaultSpawnWeights = new SpawnWeights
-            {
-                enemy = 1,
-                landmark = 1,
-                treasure = 1,
-                _default = 1,
-                empty = 1,
-                trap = 1,
-                props = 1
-            };
+            var defaultSpawnWeights = spawnWeights ?? new SpawnWeights();
 
             // Serialize and save to file
             string json = JsonSerializer.Serialize(defaultSpawnWeights, new JsonSerializerOptions { WriteIndented = true });
@@ -141,18 +150,10 @@ public static class ConfigLoader
             Console.WriteLine($"Created default spawn factor config at {path}");
         }
 
-        internal static void CreateMapWeights(string mapWeightsPath)
+        internal static void CreateMapConfig(string mapWeightsPath, MapConfig? mapConfig = null)
         {
             // Create default map weights
-            var defaultMapWeights = new MapConfig
-            {
-                Length = 100,
-                Seed = null,
-                CollisionRadius = 2,
-                Thickness = 1,
-                FlagBoss = true,
-                FlagQuest = true
-            };
+            var defaultMapWeights = mapConfig ?? new MapConfig();
 
             // Serialize and save to file
             string json = JsonSerializer.Serialize(defaultMapWeights, new JsonSerializerOptions { WriteIndented = true });
@@ -161,4 +162,13 @@ public static class ConfigLoader
             Console.WriteLine($"Created default map weights config at {mapWeightsPath}");
         }
     }
+}
+
+public class MissingDataException : Exception
+{
+    public MissingDataException() { }
+
+    public MissingDataException(string message) : base(message) { }
+
+    public MissingDataException(string message, Exception innerException) : base(message, innerException) { }
 }

@@ -12,10 +12,11 @@ public class MapConstructor
     internal int padding = 1;
     public NodeContainerData NodeContainer { get; set; } = new NodeContainerData();
 
-    public MapConstructor()
+    public MapConstructor(bool overwriteExisting = false, SpawnWeights? spawnWeights = null, MapConfig? mapConfig = null)
     {
-
-        ConfigLoader.InitConfigFiles();
+        ConfigLoader.InitConfigFiles(overwriteExisting: overwriteExisting, spawnWeights: spawnWeights, mapConfig: mapConfig);
+        this.spawnWeights = spawnWeights ?? ConfigLoader.LoadSpawnWeights();
+        this.mapConfig = mapConfig ?? ConfigLoader.LoadMapConfig();
         random = new Random();
     }
 
@@ -23,15 +24,13 @@ public class MapConstructor
     {
         // Start details
         Console.WriteLine("Starting Map Generation...");
-        this.mapConfig = ConfigLoader.LoadMapConfig();
-        this.spawnWeights = ConfigLoader.LoadSpawnWeights();
         this.random = (mapConfig.Seed == null) ? this.random : new Random((int)mapConfig.Seed);
 
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
         // Init generation
-        BasicBuilder.GenerateDefaultAndFlaggedNotes(this);
-        BasicBuilder.FillDefaultNodesWithTypeNodes(this);
+        GeneratorBuilder.GenerateDefaultAndFlaggedNotes(this);
+        GeneratorBuilder.FillDefaultNodesWithTypeNodes(this);
         ObjectBuilder.GenerateObjectNodes(this);
 
         // Finalize details
@@ -41,7 +40,9 @@ public class MapConstructor
             + $"Raw floor nodes       {NodeContainer.NodesFloorRaw.Count,6} stk\n"
             + $"Parent nodes          {NodeContainer.NodesGenerate.Count,6} stk\n"
             + $"Object nodes          {NodeContainer.NodesObjects.Count,6} stk\n"
-            + $"Generation time       {stopwatch.ElapsedMilliseconds,6} .ms\n");
+            + $"Generation time       {stopwatch.ElapsedMilliseconds,6} .ms\n"
+            + $""
+            );
 
     }
 

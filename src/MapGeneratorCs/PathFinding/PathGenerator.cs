@@ -1,6 +1,5 @@
 using MapGeneratorCs.Types;
 using MapGeneratorCs.PathFinding.Utils;
-using System.Collections.Generic;
 
 namespace MapGeneratorCs.PathFinding;
 
@@ -8,9 +7,9 @@ public class PathGenerator
 {
     public Dictionary<Vect2D, PathNode> Nodes { get; private set; }
     private bool isCalculated = false;
-
-    public PathGenerator(NodeContainerData container)
+    public PathGenerator(NodeContainerData container, bool includePrintLog = false)
     {
+        PathFindingUtils.IncludeTimerLog = includePrintLog;
         Nodes = PathFindingUtils.CreatePathNodesFromMap(container);
     }
 
@@ -20,11 +19,11 @@ public class PathGenerator
             return null;
 
         // Reset node costs if this is not the first calculation (optimization)
-        if (!isCalculated)
-            isCalculated = true;
-        else
+        if (isCalculated)
             PathFindingUtils.ResetNodeCosts(Nodes);
 
+        isCalculated = true;
+        PathFindingUtils.PrintUpdateTimeLog("PathGenerator: Starting pathfinding...", false);
         var openSet = new SortedSet<PathNode>(new PathNodeComparer());
         var closedSet = new HashSet<PathNode>();
 
@@ -40,7 +39,11 @@ public class PathGenerator
         {
             var current = openSet.Min!;
             if (ReferenceEquals(current, goalNode))
+            {
+                PathFindingUtils.PrintUpdateTimeLog("PathGenerator: Finished pathfinding");
+                PathFindingUtils.ResetNodeCosts(Nodes);
                 return RetracePath(goalNode);
+            }
 
             openSet.Remove(current);
             closedSet.Add(current);
@@ -75,6 +78,8 @@ public class PathGenerator
             }
         }
 
+        PathFindingUtils.PrintUpdateTimeLog("PathGenerator: No path found");
+        PathFindingUtils.ResetNodeCosts(Nodes);
         return null;
     }
 
@@ -96,5 +101,19 @@ public class PathGenerator
     private float CalculateHeuristic(Vect2D a, Vect2D b)
     {
         return Math.Abs(a.x - b.x) + Math.Abs(a.y - b.y);
+    }
+
+    public List<Vect2D> FindClosestObjectNodesOfType(
+        Vect2D startPos, Dictionary<Vect2D,
+        TileSpawnType> objectType,
+        float? maxSearchDistance = null,
+        int? maxObjectCount = null)
+    {
+        return PathFindingUtils.FindClosestObjectNodesOfType(
+            startPos,
+            objectType,
+            maxSearchDistance: (int?)maxSearchDistance,
+            maxObjectCount: maxObjectCount);
+
     }
 }
