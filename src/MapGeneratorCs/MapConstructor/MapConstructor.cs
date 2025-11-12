@@ -19,6 +19,12 @@ public class MapConstructor
         random = new Random();
     }
 
+    public MapConstructor(string jsonFileLoadPath)
+    {
+        LoadMapFromJson(jsonFileLoadPath);
+        random = new Random();
+    }
+
     public void GenerateMap()
     {
         // Start details

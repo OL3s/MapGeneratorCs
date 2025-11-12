@@ -7,11 +7,7 @@ public class MapConstructorTests
     public void GenerateMap_Test()
     {
         // Arrange
-        var map = new MapConstructor(overwriteExisting: true,
-        mapConfig: (Environment.GetEnvironmentVariable("RUN_HUGE_TESTS") != "1")
-            ? new MapConfig() { Length = 8_000_000 }
-            : null
-        );
+        var map = new MapConstructor(overwriteExisting: true);
 
         // Act
         map.GenerateMap();
