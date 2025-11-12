@@ -13,17 +13,22 @@ internal class Program
         var pathGenerator = new PathGenerator(map.NodeContainer, includePrintLog: true);
 
         // use static helper instead of instance method
-        var closest = pathGenerator.FindClosestObjectNodesOfType(
+        var closest = map.FindClosestObjectNodesOfTypeByAirDistance(
             new Vect2D(10, 10),
             map.NodeContainer.NodesObjects,
             maxSearchDistance: 50,
             maxObjectCount: 5
         );
 
-        Console.WriteLine($"Found {closest.Count} matching object nodes within distance 50.");
-        foreach (var pos in closest)
-        {
-            Console.WriteLine($" - Object at position {pos}");
-        }
+        var startPos = map.StartPosition;
+        var goalPos = map.EndPosition;
+
+
+        var pathToGoal = pathGenerator.FindPath(
+            startPos,
+            goalPos
+        );
+
+        pathGenerator.SavePathAndMapToImage(map, pathToGoal);
     }
 }

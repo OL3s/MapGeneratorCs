@@ -1,5 +1,6 @@
 using MapGeneratorCs.Types;
-namespace MapGeneratorCs.Utils;
+using MapGeneratorCs.Utils;
+namespace MapGeneratorCs.Builders;
 
 public static class ObjectBuilder
 {
@@ -86,13 +87,28 @@ public static class ObjectBuilder
 
     private static void GenerateObjectsRandomCount(MapConstructor map, Vect2D position, TileSpawnType objType, int count)
     {
+
+        var flagNodes = new List<TileSpawnType>
+        {
+            TileSpawnType.StartObject,
+            TileSpawnType.EndObject,
+            TileSpawnType.BossObject,
+            TileSpawnType.MainBossObject,
+            TileSpawnType.QuestObject
+        };
+
         var possiblePositions = GetOpenTiles(map, position, map.mapConfig.CollisionRadius);
 
         while (count-- > 0 && possiblePositions.Count > 0)
         {
             var spawnPos = possiblePositions[map.random.Next(possiblePositions.Count)];
             if (objType != TileSpawnType.Empty && !map.NodeContainer.NodesObjects.ContainsKey(spawnPos))
+            {
                 map.NodeContainer.NodesObjects[spawnPos] = objType;
+                // Add to flagged nodes if applicable
+                if (flagNodes.Contains(objType))
+                    map.NodeContainer.NodesFlags[spawnPos] = objType;
+            }
             possiblePositions.Remove(spawnPos);
         }
     }

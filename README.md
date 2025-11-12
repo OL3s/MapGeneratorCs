@@ -1,32 +1,63 @@
 # Map Generation System
 
-A C# library for generating, exporting and loading procedural maps.
-Note: export/ and generated images are in .gitignore by default.
+A small C# library and CLI for generating, exporting and loading procedural maps.
 
 ## Quick start
+
 1. Install .NET 8 SDK.
-2. Build:
+2. Build the solution:
+   ```sh
+   dotnet build MapGenerationCs.sln
+   ```
+3. Run unit tests:
+   ```sh
+   dotnet test tests/MapGeneratorCs.Tests/MapGeneratorCs.Tests.csproj
+   ```
+   - The large/integration test is gated behind the environment variable `RUN_HUGE_TESTS=1`.
+
+## Run the console example
+
+The console app demonstrates map generation and pathfinding:
+
+- App entry: Program.cs
+
+Run:
 ```sh
-dotnet build MapGenerationCs.sln
-```
-3. Run tests:
-```sh
-dotnet test tests/MapGeneratorCs.Tests/MapGeneratorCs.Tests.csproj
+dotnet run --project src/ConsoleClientApp/ConsoleClientApp.csproj
 ```
 
-## Usage (example)
-Create, generate and export:
+## Core API (examples)
+
+- Create, generate and export a map:
 ```csharp
 var ctor = new MapGeneratorCs.MapConstructor();
-ctor.GenerateMap();                                   // generates the map
-ctor.SaveMapAsImage();                                // creates export/map_output.png
-ctor.SaveMapAsJson();                                 // creates export/map_output.json
+ctor.GenerateMap();               // generate
+ctor.SaveMapAsImage();            // export/map_output.png
+ctor.SaveMapAsJson();             // export/map_output.json
 ```
-
-Load from JSON into a new instance:
+- Load a saved map:
 ```csharp
-var loaded = new MapGeneratorCs.MapConstructor().LoadMapFromJson();
+var loaded = new MapGeneratorCs.MapConstructor();
+loaded.LoadMapFromJson(); // loads from export/map_output.json by default
 ```
 
-## License
-Hobby project — no license specified.
+Useful types:
+- `MapGeneratorCs.MapConstructor` — main generator and helpers.
+- `MapGeneratorCs.PathFinding.PathGenerator` — run pathfinding on generated maps.
+- `MapGeneratorCs.Utils.ConfigLoader` — load/create default config files.
+
+## Config & output
+
+- Default config files are created under `config/` (if missing) by the library. Example config: configMapConfig.json
+- Output files are written to `export/` (images and JSON). Note: `export/` and generated images are ignored by git by default.
+
+## Tests
+
+- Unit tests: MapGeneratorCs.Tests.csproj
+- Integration: PathFindingOnMapTest.cs generates a full map and runs pathfinding; enable heavy tests with `RUN_HUGE_TESTS=1`.
+
+## Notes
+
+- This is a hobby project — no license specified. This means "all rights reserved" by default.
+- The repository .gitignore already excludes `export/`, `config/` and generated images.
+```

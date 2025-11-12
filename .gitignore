@@ -2,6 +2,7 @@
 bin/
 obj/
 export/
+config/
 
 # Ignore user-specific files
 *.user

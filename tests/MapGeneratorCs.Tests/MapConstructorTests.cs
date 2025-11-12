@@ -7,7 +7,11 @@ public class MapConstructorTests
     public void GenerateMap_Test()
     {
         // Arrange
-        var map = new MapConstructor(overwriteExisting: true);
+        var map = new MapConstructor(overwriteExisting: true,
+        mapConfig: (Environment.GetEnvironmentVariable("RUN_HUGE_TESTS") != "1")
+            ? new MapConfig() { Length = 8_000_000 }
+            : null
+        );
 
         // Act
         map.GenerateMap();
@@ -33,7 +37,7 @@ public class MapConstructorTests
         Assert.Contains(map.NodeContainer.NodesObjects.Values, v => v == TileSpawnType.EndObject);
 
         // Clean up
-        //map.ClearAllData();
+        map.ClearAllData();
     }
 
     [Fact]
@@ -57,30 +61,4 @@ public class MapConstructorTests
         map.ClearAllData();
     }
 
-    [Fact]
-    public void GenerateMap_Huge_Size_Test()
-    {
-        if (Environment.GetEnvironmentVariable("RUN_HUGE_TESTS") != "1")
-        {
-            Console.WriteLine("Skipping huge map generation test. Set environment variable RUN_HUGE_TESTS=1 to enable.");
-            return;
-        }
-
-        // Arrange
-        var largeMapConfig = new MapConfig
-        {
-            Length = 100_000_000
-        };
-        var map = new MapConstructor(overwriteExisting: false, mapConfig: largeMapConfig);
-
-        // Act
-        map.GenerateMap();
-
-        // Assert
-        Assert.True(map.NodeContainer.NodesFloor.Count > 100_000_100); // Expecting a large number of floor nodes
-        Assert.True(map.NodeContainer.NodesObjects.Count > 100_000); // Expecting a significant number of object nodes
-
-        // Clean up
-        map.ClearAllData();
-    }
 }

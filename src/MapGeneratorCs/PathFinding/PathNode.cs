@@ -6,7 +6,6 @@ namespace MapGeneratorCs.PathFinding;
 public class PathNode
 {
     public Vect2D Position;
-
     public TileSpawnType NodeType = TileSpawnType.Default;
     public float MovementPenalty = 0;
     public HashSet<PathNode> Neighbours = new();

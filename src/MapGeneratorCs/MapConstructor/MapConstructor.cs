@@ -1,12 +1,11 @@
-﻿
+﻿using MapGeneratorCs.Utils;
 using MapGeneratorCs.Types;
-using MapGeneratorCs.Utils;
+using MapGeneratorCs.Builders;
 namespace MapGeneratorCs;
 
 public class MapConstructor
 {
     internal Random random;
-
     public SpawnWeights spawnWeights;
     public MapConfig mapConfig;
     internal int padding = 1;
@@ -80,5 +79,30 @@ public class MapConstructor
     {
         ConfigLoader.DeleteAll();
     }
+
+    public List<Vect2D> FindClosestObjectNodesOfTypeByAirDistance
+    (       Vect2D from,
+            Dictionary<Vect2D, TileSpawnType> objectNodes,
+            TileSpawnType? searchType = null,
+            int? maxSearchDistance = null,
+            int? maxObjectCount = null
+    )
+    {
+        var foundNodes = MapUtils.FindClosestObjectNodesOfTypeByAirDistance(
+            from,
+            objectNodes,
+            searchType,
+            maxSearchDistance,
+            maxObjectCount
+        );
+        return foundNodes;
+    }
+
+    // Vect2D getters for flagged nodes
+    public Vect2D StartPosition => NodeContainer.NodesObjects.FirstOrDefault(kv => kv.Value == TileSpawnType.StartObject).Key;
+    public Vect2D EndPosition => NodeContainer.NodesObjects.FirstOrDefault(kv => kv.Value == TileSpawnType.EndObject).Key;
+    public Vect2D BossPosition => NodeContainer.NodesObjects.FirstOrDefault(kv => kv.Value == TileSpawnType.BossObject).Key;
+    public Vect2D MainBossPosition => NodeContainer.NodesObjects.FirstOrDefault(kv => kv.Value == TileSpawnType.MainBossObject).Key;
+    public Vect2D QuestPosition => NodeContainer.NodesObjects.FirstOrDefault(kv => kv.Value == TileSpawnType.QuestObject).Key;
 
 }

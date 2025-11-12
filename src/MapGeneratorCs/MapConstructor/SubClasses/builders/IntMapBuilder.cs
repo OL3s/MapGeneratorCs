@@ -1,9 +1,10 @@
 using MapGeneratorCs.Types;
+using MapGeneratorCs.Utils;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Formats.Png;
 
-namespace MapGeneratorCs.Utils;
+namespace MapGeneratorCs.Builders;
 
 public static class IntMapBuilder
 {

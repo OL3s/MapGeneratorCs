@@ -1,7 +1,7 @@
 using System.Text.Json;
 
 using MapGeneratorCs.Types;
-namespace MapGeneratorCs.Utils;
+namespace MapGeneratorCs.Builders;
 public static class JsonMapBuilder
 {
     public static void SaveMapAsJson(MapConstructor map, string filePath)

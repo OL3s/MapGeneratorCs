@@ -1,5 +1,5 @@
 using MapGeneratorCs.Types;
-namespace MapGeneratorCs.Utils;
+namespace MapGeneratorCs.Builders;
 public static class GeneratorBuilder
 {
     private static Vect2D currentPosition;

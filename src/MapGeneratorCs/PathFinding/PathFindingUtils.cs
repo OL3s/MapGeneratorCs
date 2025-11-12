@@ -27,28 +27,28 @@ public static class PathFindingUtils
     {
         var nodes = new Dictionary<Vect2D, PathNode>();
 
-        PrintUpdateTimeLog("PathFindingUtils: Starting path node generation", false);
+        PrintUpdateTimeLog("PathFindingUtils: Creating path node generation", false);
         foreach (var position in container.NodesFloor)
         {
+            var type = container.NodesObjects.ContainsKey(position)
+                ? container.NodesObjects[position]
+                : TileSpawnType.Default;
             nodes.Add(position, new PathNode
             {
                 Position = position,
-                NodeType = TileSpawnType.Default
+                NodeType = type,
+                MovementPenalty = GetNodeMovementPenalty(type)
             });
         }
 
         PrintUpdateTimeLog("PathFindingUtils: Finished path node generation");
+        PrintUpdateTimeLog("PathFindingUtils: Assigning neighbours", false);
         foreach (var pair in nodes)
         {
-            var position = pair.Key;
-            var node = pair.Value;
-
-            node.NodeType = GetNodeType(position, container);
-            node.MovementPenalty = GetNodeMovementPenalty(node.NodeType);
-            node.Neighbours = GetNeighbours(position, nodes);
+            pair.Value.Neighbours = GetNeighbours(pair.Key, nodes);
         }
 
-        PrintUpdateTimeLog("PathFindingUtils: Finished assigning node properties");
+        PrintUpdateTimeLog("PathFindingUtils: Finished assigning node neighbours");
         return nodes;
     }
 
@@ -124,7 +124,7 @@ public static class PathFindingUtils
     // Reset costs for all nodes in the dictionary
     public static void ResetNodeCosts(Dictionary<Vect2D, PathNode> nodes)
     {
-        PrintUpdateTimeLog("PathFindingUtils: Resetting node costs");
+        PrintUpdateTimeLog("PathFindingUtils: Resetting node costs", false);
         foreach (var node in nodes.Values)
         {
             node.CostFromStart = float.MaxValue;
@@ -134,90 +134,92 @@ public static class PathFindingUtils
         PrintUpdateTimeLog("PathFindingUtils: Finished resetting node costs");
     }
 
-    public static List<Vect2D> FindClosestObjectNodesOfType(
-        Vect2D from,
-        Dictionary<Vect2D, TileSpawnType> objectNodes,
-        int? maxSearchDistance = null,
-        int? maxObjectCount = null)
+        public static List<Vect2D>? FindPath(Dictionary<Vect2D, PathNode> nodes, Vect2D start, Vect2D goal, bool resetNodeCosts)
     {
-        var result = new List<Vect2D>();
+        if (!nodes.ContainsKey(start) || !nodes.ContainsKey(goal))
+            return null;
 
-        if (objectNodes == null || objectNodes.Count == 0)
-            return result;
+        // Reset node costs if this is not the first calculation (optimization)
+        if (resetNodeCosts)
+            ResetNodeCosts(nodes);
 
-        if (maxObjectCount.HasValue && maxObjectCount.Value == 0)
-            return result;
+        PrintUpdateTimeLog("PathGenerator: Starting pathfinding...", false);
+        var openSet = new SortedSet<PathNode>(new PathNodeComparer());
+        var closedSet = new HashSet<PathNode>();
 
-        if (maxSearchDistance.HasValue && maxSearchDistance.Value <= 0)
-            return result;
+        var startNode = nodes[start];
+        var goalNode = nodes[goal];
 
-        int allowedDistance = maxSearchDistance ?? int.MaxValue;
-        int maxObjectsToReturn = maxObjectCount ?? int.MaxValue;
-        bool useDistanceLimit = maxSearchDistance.HasValue;
+        startNode.CostFromStart = 0f;
+        startNode.HeuristicCost = CalculateHeuristic(start, goal);
 
-        // Manhattan distance
-        static int CalculateManhattanDistance(in Vect2D a, in Vect2D b) =>
-            Math.Abs(a.x - b.x) + Math.Abs(a.y - b.y);
+        openSet.Add(startNode);
 
-        // Fast path for small sets
-        if (objectNodes.Count < 1000)
+        while (openSet.Count > 0)
         {
-            var evaluatedNodes = new List<(Vect2D position, int distance)>(objectNodes.Count);
-
-            foreach (var entry in objectNodes)
+            var current = openSet.Min!;
+            if (ReferenceEquals(current, goalNode))
             {
-                int distance = CalculateManhattanDistance(entry.Key, from);
-                if (useDistanceLimit && distance > allowedDistance)
+                PrintUpdateTimeLog("PathGenerator: Finished pathfinding");
+                var path = RetracePath(goalNode);
+                ResetNodeCosts(nodes);
+                return path;
+            }
+
+            openSet.Remove(current);
+            closedSet.Add(current);
+
+            foreach (var neighbour in current.Neighbours)
+            {
+                if (closedSet.Contains(neighbour))
                     continue;
 
-                evaluatedNodes.Add((entry.Key, distance));
+                bool diagonal =
+                    neighbour.Position.x != current.Position.x &&
+                    neighbour.Position.y != current.Position.y;
+
+                float stepCost = diagonal ? MathF.Sqrt(2) : 1f;
+
+                float newCost =
+                    current.CostFromStart +
+                    stepCost +
+                    neighbour.MovementPenalty;
+
+                if (newCost < neighbour.CostFromStart)
+                {
+                    if (openSet.Contains(neighbour))
+                        openSet.Remove(neighbour);
+
+                    neighbour.CostFromStart = newCost;
+                    neighbour.HeuristicCost = CalculateHeuristic(neighbour.Position, goal);
+                    neighbour.ParentNode = current;
+
+                    openSet.Add(neighbour);
+                }
             }
-
-            evaluatedNodes.Sort((a, b) => a.distance.CompareTo(b.distance));
-
-            foreach (var node in evaluatedNodes.Take(maxObjectsToReturn))
-                result.Add(node.position);
-
-            return result;
         }
 
-        // Large set path
-        var candidateNodes = new List<(Vect2D position, int distance)>();
-        candidateNodes.Capacity = Math.Min(objectNodes.Count, 4096);
+        PrintUpdateTimeLog("PathGenerator: No path found");
+        ResetNodeCosts(nodes);
+        return null;
+    }
+    private static float CalculateHeuristic(Vect2D a, Vect2D b)
+    {
+        return Math.Abs(a.x - b.x) + Math.Abs(a.y - b.y);
+    }
 
-        foreach (var entry in objectNodes)
+    private static List<Vect2D> RetracePath(PathNode goal)
+    {
+        var path = new List<Vect2D>();
+        var current = goal;
+
+        while (current != null)
         {
-            int distance = CalculateManhattanDistance(entry.Key, from);
-            if (useDistanceLimit && distance > allowedDistance)
-                continue;
-
-            candidateNodes.Add((entry.Key, distance));
+            path.Add(current.Position);
+            current = current.ParentNode!;
         }
 
-        if (candidateNodes.Count == 0)
-            return result;
-
-        // Single best result (no sort)
-        if (maxObjectsToReturn == 1)
-        {
-            var bestNode = candidateNodes[0];
-
-            for (int i = 1; i < candidateNodes.Count; i++)
-            {
-                if (candidateNodes[i].distance < bestNode.distance)
-                    bestNode = candidateNodes[i];
-            }
-
-            result.Add(bestNode.position);
-            return result;
-        }
-
-        // Sort and take top N
-        candidateNodes.Sort((a, b) => a.distance.CompareTo(b.distance));
-
-        foreach (var node in candidateNodes.Take(maxObjectsToReturn))
-            result.Add(node.position);
-
-        return result;
+        path.Reverse();
+        return path;
     }
 }
