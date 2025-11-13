@@ -19,7 +19,7 @@ A small C# library and CLI for generating, exporting and loading procedural maps
 
 The console app demonstrates map generation and pathfinding:
 
-- App entry: Program.cs
+- App entry: [src/ConsoleClientApp/Program.cs](src/ConsoleClientApp/Program.cs)
 
 Run:
 ```sh
@@ -42,22 +42,21 @@ loaded.LoadMapFromJson(); // loads from export/map_output.json by default
 ```
 
 Useful types:
-- `MapGeneratorCs.MapConstructor` — main generator and helpers.
-- `MapGeneratorCs.PathFinding.PathGenerator` — run pathfinding on generated maps.
-- `MapGeneratorCs.Utils.ConfigLoader` — load/create default config files.
+- [`MapGeneratorCs.MapConstructor`](src/MapGeneratorCs/MapConstructor/MapConstructor.cs) — main generator and helpers.
+- [`MapGeneratorCs.PathFinding.AStar.AStarGenerator`](src/MapGeneratorCs/PathFinding/AStart/AStarGenerator.cs) — run pathfinding on generated maps.
+- [`MapGeneratorCs.Generator.Utils.ConfigLoader`](src/MapGeneratorCs/MapConstructor/Components/ConfigLoader.cs) — load/create default config files.
 
 ## Config & output
 
-- Default config files are created under `config/` (if missing) by the library. Example config: configMapConfig.json
+- Default config files are created under `config/` (if missing) by the library. Example config: `configMapConfig.json`
 - Output files are written to `export/` (images and JSON). Note: `export/` and generated images are ignored by git by default.
 
 ## Tests
 
-- Unit tests: MapGeneratorCs.Tests.csproj
-- Integration: PathFindingOnMapTest.cs generates a full map and runs pathfinding; enable heavy tests with `RUN_HUGE_TESTS=1`.
+- Unit tests: [tests/MapGeneratorCs.Tests/MapGeneratorCs.Tests.csproj](tests/MapGeneratorCs.Tests/MapGeneratorCs.Tests.csproj)
+- Integration: [tests/MapGeneratorCs.Tests/PathFindingOnMapTest.cs](tests/MapGeneratorCs.Tests/PathFindingOnMapTest.cs) generates a full map and runs pathfinding; enable heavy tests with `RUN_HUGE_TESTS=1`.
 
 ## Notes
 
 - This is a hobby project — no license specified. This means "all rights reserved" by default.
 - The repository .gitignore already excludes `export/`, `config/` and generated images.
-```
