@@ -1,6 +1,7 @@
-﻿using MapGeneratorCs.Utils;
+﻿using MapGeneratorCs.Generator.Utils;
 using MapGeneratorCs.Types;
-using MapGeneratorCs.Builders;
+using MapGeneratorCs.Generator.Types;
+using MapGeneratorCs.Generator.Utils.Builders;
 namespace MapGeneratorCs;
 
 public class MapConstructor

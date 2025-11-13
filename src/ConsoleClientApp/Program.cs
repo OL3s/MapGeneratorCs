@@ -1,6 +1,5 @@
 ﻿using MapGeneratorCs;
-using MapGeneratorCs.AStar;
-using MapGeneratorCs.Types;
+using MapGeneratorCs.PathFinding.AStar;
 
 internal class Program
 {

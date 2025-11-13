@@ -1,5 +1,5 @@
 using MapGeneratorCs.Types;
-namespace MapGeneratorCs.Utils;
+namespace MapGeneratorCs.Generator.Utils;
 
 public static class MapUtils
 {

@@ -1,10 +1,10 @@
 using MapGeneratorCs.Types;
-using MapGeneratorCs.Utils;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Formats.Png;
+using static MapGeneratorCs.Generator.Utils.TileColorUtils;
 
-namespace MapGeneratorCs.Builders;
+namespace MapGeneratorCs.Generator.Utils.Builders;
 
 public static class IntMapBuilder
 {
@@ -81,7 +81,7 @@ public static class IntMapBuilder
                     tileType = TileSpawnType.Default;
                 }
 
-                image[x, y] = TileColorUtils.GetColorForTileType(tileType);
+                image[x, y] = GetColorForTileType(tileType);
             }
         }
 

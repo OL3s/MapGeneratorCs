@@ -1,4 +1,4 @@
-﻿namespace MapGeneratorCs.DjiAndALT;
+﻿namespace MapGeneratorCs.PathFinding.ALT;
 
 public class ALTGenerator
 {

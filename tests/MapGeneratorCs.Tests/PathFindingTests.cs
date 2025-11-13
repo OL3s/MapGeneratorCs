@@ -1,6 +1,5 @@
 using MapGeneratorCs.PathFinding;
-using MapGeneratorCs.Types;
-
+using MapGeneratorCs.PathFinding.AStar;
 namespace MapGeneratorCs.Tests;
 
 public class PathFindingTests
@@ -12,7 +11,7 @@ public class PathFindingTests
         for (int x = 0; x < 5; x++)
             container.NodesFloor.Add(new Vect2D(x, 0));
 
-        var pathGen = new PathGenerator(container);
+        var pathGen = new AStarGenerator(container);
         var path = pathGen.FindPath(new Vect2D(0, 0), new Vect2D(4, 0));
 
         Assert.NotNull(path);
@@ -30,7 +29,7 @@ public class PathFindingTests
             for (int y = 0; y < 5; y++)
                 container.NodesFloor.Add(new Vect2D(x, y));
 
-        var pathGen = new PathGenerator(container);
+        var pathGen = new AStarGenerator(container);
         var path = pathGen.FindPath(new Vect2D(0, 0), new Vect2D(4, 4));
 
         Assert.NotNull(path);
@@ -49,7 +48,7 @@ public class PathFindingTests
         // Set middle node to high penalty
         container.NodesObjects[new Vect2D(1, 0)] = TileSpawnType.LandmarkObject;
 
-        var pathGen = new PathGenerator(container);
+        var pathGen = new AStarGenerator(container);
         var path = pathGen.FindPath(new Vect2D(0, 0), new Vect2D(2, 0));
 
         Assert.NotNull(path);
@@ -72,7 +71,7 @@ public class PathFindingTests
         container.NodesObjects[new Vect2D(1, 0)] = TileSpawnType.LandmarkObject;
         container.NodesObjects[new Vect2D(1, 1)] = TileSpawnType.TrapObject;
 
-        var pathGen = new PathGenerator(container);
+        var pathGen = new AStarGenerator(container);
         var path = pathGen.FindPath(new Vect2D(0, 0), new Vect2D(2, 0));
 
         Assert.NotNull(path);
@@ -89,7 +88,7 @@ public class PathFindingTests
         container.NodesFloor.Add(new Vect2D(0, 0));
         container.NodesFloor.Add(new Vect2D(10, 10));
 
-        var pathGen = new PathGenerator(container);
+        var pathGen = new AStarGenerator(container);
         var path = pathGen.FindPath(new Vect2D(0, 0), new Vect2D(10, 10));
 
         Assert.Null(path);
@@ -112,7 +111,7 @@ public class PathFindingTests
                 else
                     container.NodesObjects[new Vect2D(2, y)] = TileSpawnType.LandmarkObject;
 
-        var pathGen = new PathGenerator(container);
+        var pathGen = new AStarGenerator(container);
         var path = pathGen.FindPath(new Vect2D(0, 0), new Vect2D(4, 4));
 
         Assert.NotNull(path);
@@ -131,7 +130,7 @@ public class PathFindingTests
         var container = new NodeContainerData();
         container.NodesFloor.Add(new Vect2D(0, 0));
 
-        var pg = new PathGenerator(container);
+        var pg = new AStarGenerator(container);
         var path = pg.FindPath(new Vect2D(0, 0), new Vect2D(0, 0));
 
         Assert.NotNull(path);
@@ -145,7 +144,7 @@ public class PathFindingTests
         var container = new NodeContainerData();
         container.NodesFloor.Add(new Vect2D(0, 0));
         // goal missing
-        var pg = new PathGenerator(container);
+        var pg = new AStarGenerator(container);
         var path = pg.FindPath(new Vect2D(0, 0), new Vect2D(1, 0));
         Assert.Null(path);
 
@@ -162,7 +161,7 @@ public class PathFindingTests
         container.NodesFloor.Add(new Vect2D(0, 0));
         container.NodesFloor.Add(new Vect2D(1, 1));
 
-        var pg = new PathGenerator(container);
+        var pg = new AStarGenerator(container);
         var path = pg.FindPath(new Vect2D(0, 0), new Vect2D(1, 1));
         Assert.Null(path);
     }
@@ -170,7 +169,6 @@ public class PathFindingTests
     [Fact]
     public void Finds_CostOptimal_Path_With_Penalties()
     {
-        PathFinding.Utils.PathFindingUtils.IncludeTimerLog = true;
         var container = new NodeContainerData();
         // 3x1 corridor and an alternative 3x2 detour
         for (int x = 0; x < 3; x++)
@@ -182,7 +180,7 @@ public class PathFindingTests
         container.NodesObjects[new Vect2D(1, 0)] = TileSpawnType.LandmarkObject; // high penalty via GetNodeMovementPenalty
         container.NodesObjects[new Vect2D(1, 1)] = TileSpawnType.TrapObject; // lower penalty
 
-        var pg = new PathGenerator(container);
+        var pg = new AStarGenerator(container);
         var path = pg.FindPath(new Vect2D(0, 0), new Vect2D(2, 0));
 
         Assert.NotNull(path);
@@ -193,7 +191,6 @@ public class PathFindingTests
     [Fact]
     public void Path_Does_Not_Work_On_Diagonal_With_Border_Collision()
     {
-        PathFinding.Utils.PathFindingUtils.IncludeTimerLog = true;
         var container = new NodeContainerData();
         // "Plus" formation: top, center and right exist, but top-right corner (2,0) is missing.
         // Start at top (1,0) -> goal at right (2,1).
@@ -203,7 +200,7 @@ public class PathFindingTests
         container.NodesFloor.Add(new Vect2D(2, 1)); // right (goal)
         // Note: do NOT add (2,0) so diagonal is disallowed by GetNeighbours
 
-        var pg = new PathGenerator(container);
+        var pg = new AStarGenerator(container);
         var path = pg.FindPath(new Vect2D(1, 0), new Vect2D(2, 1));
 
         Assert.NotNull(path);

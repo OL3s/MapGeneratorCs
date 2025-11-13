@@ -1,6 +1,4 @@
-using System.Linq;
-using MapGeneratorCs.PathFinding;
-using MapGeneratorCs.Types;
+using MapGeneratorCs.PathFinding.AStar;
 namespace MapGeneratorCs.Tests;
 
 public class PathFindingOnMapTests
@@ -9,7 +7,6 @@ public class PathFindingOnMapTests
     [Fact]
     public async Task GeneratedMap_Pathfinding_Completes_Successfully()
     {
-        PathFinding.Utils.PathFindingUtils.IncludeTimerLog = true;
         var map = new MapConstructor();
         map.GenerateMap();
 
@@ -23,7 +20,7 @@ public class PathFindingOnMapTests
         Assert.NotNull(map.NodeContainer);
         Assert.True(map.NodeContainer!.NodesFloor.Any(), "NodeContainer has no floor nodes after generation");
 
-        var pathGenerator = new PathGenerator(map.NodeContainer);
+        var pathGenerator = new AStarGenerator(map.NodeContainer);
 
         // Act
         var path = pathGenerator.FindPath(map.StartPosition, map.EndPosition);

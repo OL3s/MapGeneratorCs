@@ -1,6 +1,6 @@
 using MapGeneratorCs.Types;
-using MapGeneratorCs.Utils;
-namespace MapGeneratorCs.Builders;
+using MapGeneratorCs.Generator.Types;
+namespace MapGeneratorCs.Generator.Utils.Builders;
 
 public static class ObjectBuilder
 {

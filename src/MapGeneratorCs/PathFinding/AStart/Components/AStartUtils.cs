@@ -1,6 +1,6 @@
 using MapGeneratorCs.Types;
 using MapGeneratorCs.PathFinding.Types;
-using MapGeneratorCs.PathFinding;
+using MapGeneratorCs.Logging;
 
 namespace MapGeneratorCs.PathFinding.AStar.Utils;
     
@@ -9,7 +9,7 @@ public static class AStarUtils
 
     public static List<Vect2D>? FindPath(Dictionary<Vect2D, PathNode> nodes, Vect2D start, Vect2D goal, bool resetNodeCosts)
     {
-        var timeLogger = new PathFindingUtils.TimeLogger();
+        var timeLogger = new TimeLogger();
         if (!nodes.ContainsKey(start) || !nodes.ContainsKey(goal))
             return null;
 
