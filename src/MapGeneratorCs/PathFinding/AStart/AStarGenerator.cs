@@ -9,10 +9,9 @@ public class AStarGenerator
 {
     public Dictionary<Vect2D, PathNode> Nodes { get; private set; }
     private bool isCalculated = false;
-    public AStarGenerator(NodeContainerData container, bool includePrintLog = false)
+    public AStarGenerator(NodeContainerData container)
     {
-        AStarUtils.IncludeTimerLog = includePrintLog;
-        Nodes = AStarUtils.CreatePathNodesFromMap(container);
+        Nodes = PathFindingUtils.CreatePathNodesFromMap(container);
     }
 
     public List<Vect2D>? FindPath(Vect2D startPos, Vect2D goalPos)

@@ -1,31 +1,21 @@
 using MapGeneratorCs.Types;
-using static MapGeneratorCs.PathFinding.PathFindingUtils;
+using MapGeneratorCs.PathFinding.Types;
+using MapGeneratorCs.PathFinding;
 
 namespace MapGeneratorCs.PathFinding.AStar.Utils;
     
 public static class AStarUtils
 {
-    // Create path nodes from the map data
-
-    // Determine the node type based on object spawns first, then default
-    private static TileSpawnType GetNodeType(Vect2D pos, NodeContainerData container)
-    {
-        if (container.NodesObjects.ContainsKey(pos))
-            return container.NodesObjects[pos];
-
-        return TileSpawnType.Default;
-    }
-
 
     public static List<Vect2D>? FindPath(Dictionary<Vect2D, PathNode> nodes, Vect2D start, Vect2D goal, bool resetNodeCosts)
     {
-        var timeLogger = new TimeLogger();
+        var timeLogger = new PathFindingUtils.TimeLogger();
         if (!nodes.ContainsKey(start) || !nodes.ContainsKey(goal))
             return null;
 
         // Reset node costs if this is not the first calculation (optimization)
         if (resetNodeCosts)
-            ResetNodeCosts(nodes);
+            PathFindingUtils.ResetNodeCosts(nodes);
 
         timeLogger.Print("PathGenerator: Starting pathfinding...", false);
         var openSet = new SortedSet<PathNode>(new PathNodeComparer());
@@ -35,7 +25,7 @@ public static class AStarUtils
         var goalNode = nodes[goal];
 
         startNode.CostFromStart = 0f;
-        startNode.HeuristicCost = CalculateHeuristic(start, goal);
+        startNode.HeuristicCost = PathFindingUtils.CalculateHeuristic(start, goal);
 
         openSet.Add(startNode);
 
@@ -45,8 +35,8 @@ public static class AStarUtils
             if (ReferenceEquals(current, goalNode))
             {
                 timeLogger.Print("PathGenerator: Finished pathfinding");
-                var path = RetracePath(goalNode);
-                ResetNodeCosts(nodes);
+                var path = PathFindingUtils.RetracePath(goalNode);
+                PathFindingUtils.ResetNodeCosts(nodes);
                 return path;
             }
 
@@ -75,7 +65,7 @@ public static class AStarUtils
                         openSet.Remove(neighbour);
 
                     neighbour.CostFromStart = newCost;
-                    neighbour.HeuristicCost = CalculateHeuristic(neighbour.Position, goal);
+                    neighbour.HeuristicCost = PathFindingUtils.CalculateHeuristic(neighbour.Position, goal);
                     neighbour.ParentNode = current;
 
                     openSet.Add(neighbour);
@@ -84,7 +74,7 @@ public static class AStarUtils
         }
 
         timeLogger.Print("PathGenerator: No path found");
-        ResetNodeCosts(nodes);
+        PathFindingUtils.ResetNodeCosts(nodes);
         return null;
     }
 
