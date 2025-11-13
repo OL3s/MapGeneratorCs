@@ -6,7 +6,7 @@ namespace MapGeneratorCs.PathFinding.Dijkstra;
 
 public static class DijGenerator
 {
-    public static Dictionary<Vect2D, PathNode> GetDijkstraCompiledNodes(NodeContainerData container)
+    public static Dictionary<Vect2D, PathNode> GetDijkstraCompiledNodes(Vect2D startPos, NodeContainerData nodeContainer)
     {
         throw new NotImplementedException();
     }
