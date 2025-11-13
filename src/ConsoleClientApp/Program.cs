@@ -1,5 +1,5 @@
 ﻿using MapGeneratorCs;
-using MapGeneratorCs.PathFinding;
+using MapGeneratorCs.AStar;
 using MapGeneratorCs.Types;
 
 internal class Program
@@ -10,7 +10,7 @@ internal class Program
         map.GenerateMap();
         map.SaveMapAsImage();
 
-        var pathGenerator = new PathGenerator(map.NodeContainer, includePrintLog: true);
+        var aStar = new AStarGenerator(map.NodeContainer, includePrintLog: true);
 
         // use static helper instead of instance method
         var closest = map.FindClosestObjectNodesOfTypeByAirDistance(
@@ -24,11 +24,17 @@ internal class Program
         var goalPos = map.EndPosition;
 
 
-        var pathToGoal = pathGenerator.FindPath(
+        var pathToGoal = aStar.FindPath(
             startPos,
             goalPos
         );
 
-        pathGenerator.SavePathAndMapToImage(map, pathToGoal);
+        if (pathToGoal == null)
+        {
+            Console.WriteLine("No path found from start to goal.");
+            return;
+        }
+        
+        aStar.SavePathAndMapToImage(map, pathToGoal);
     }
 }

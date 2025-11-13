@@ -1,68 +1,23 @@
+using System.Runtime.CompilerServices;
 using MapGeneratorCs.Types;
 
-namespace MapGeneratorCs.PathFinding.Utils;
+namespace MapGeneratorCs.PathFinding;
 
 public static class PathFindingUtils
 {
-    public static void PrintUpdateTimeLog(string message, bool printTime = true)
+    public class PathNode
     {
-        if (IncludeTimerLog == false)
-            return;
-
-        var endTime = DateTime.Now;
-        var duration = endTime - startTime;
-        string logMessage = printTime
-            ? $"{message} in {duration.TotalMilliseconds} ms"
-            : message;
-        Console.WriteLine(logMessage);
-        startTime = DateTime.Now;
+        public Vect2D Position;
+        public TileSpawnType NodeType = TileSpawnType.Default;
+        public float MovementPenalty = 0;
+        public HashSet<PathNode> Neighbours = new();
+        public float CostFromStart = float.MaxValue;  
+        public float HeuristicCost = float.MaxValue;  
+        public float TotalCost => CostFromStart + HeuristicCost;
+        public PathNode? ParentNode = null;
     }
 
-    private static DateTime startTime;
-    public static bool IncludeTimerLog { get; set; } = false;
-
-    // Create path nodes from the map data
-    public static Dictionary<Vect2D, PathNode> CreatePathNodesFromMap(
-        NodeContainerData container)
-    {
-        var nodes = new Dictionary<Vect2D, PathNode>();
-
-        PrintUpdateTimeLog("PathFindingUtils: Creating path node generation", false);
-        foreach (var position in container.NodesFloor)
-        {
-            var type = container.NodesObjects.ContainsKey(position)
-                ? container.NodesObjects[position]
-                : TileSpawnType.Default;
-            nodes.Add(position, new PathNode
-            {
-                Position = position,
-                NodeType = type,
-                MovementPenalty = GetNodeMovementPenalty(type)
-            });
-        }
-
-        PrintUpdateTimeLog("PathFindingUtils: Finished path node generation");
-        PrintUpdateTimeLog("PathFindingUtils: Assigning neighbours", false);
-        foreach (var pair in nodes)
-        {
-            pair.Value.Neighbours = GetNeighbours(pair.Key, nodes);
-        }
-
-        PrintUpdateTimeLog("PathFindingUtils: Finished assigning node neighbours");
-        return nodes;
-    }
-
-    // Determine the node type based on object spawns first, then default
-    private static TileSpawnType GetNodeType(Vect2D pos, NodeContainerData container)
-    {
-        if (container.NodesObjects.ContainsKey(pos))
-            return container.NodesObjects[pos];
-
-        return TileSpawnType.Default;
-    }
-
-    // Determine movement penalty based on node type
-    private static float GetNodeMovementPenalty(TileSpawnType type) =>
+    public static float GetNodeMovementPenalty(TileSpawnType type) =>
         type switch
         {
             // Movementcost = (1, sqrt(2) for diagonal) + GetNodeMovementPenalty()
@@ -74,8 +29,7 @@ public static class PathFindingUtils
             _ => 10f
         };
 
-    // Retrieve orthogonal and diagonal neighbours from the node map
-    private static HashSet<PathNode> GetNeighbours(
+    public static HashSet<PathNode> GetNeighbours(
         Vect2D pos,
         Dictionary<Vect2D, PathNode> nodes)
     {
@@ -121,94 +75,25 @@ public static class PathFindingUtils
         return neighbours;
     }
 
-    // Reset costs for all nodes in the dictionary
-    public static void ResetNodeCosts(Dictionary<Vect2D, PathNode> nodes)
+    public static void ResetNodeCosts(Dictionary<Vect2D, PathNode> pathNodes)
     {
-        PrintUpdateTimeLog("PathFindingUtils: Resetting node costs", false);
-        foreach (var node in nodes.Values)
+        var timeLogger = new TimeLogger();
+        timeLogger.Print("PathFindingUtils: Resetting node costs", false);
+        foreach (var node in pathNodes.Values)
         {
             node.CostFromStart = float.MaxValue;
             node.HeuristicCost = float.MaxValue;
             node.ParentNode = null;
         }
-        PrintUpdateTimeLog("PathFindingUtils: Finished resetting node costs");
+        timeLogger.Print("PathFindingUtils: Finished resetting node costs");
     }
 
-        public static List<Vect2D>? FindPath(Dictionary<Vect2D, PathNode> nodes, Vect2D start, Vect2D goal, bool resetNodeCosts)
-    {
-        if (!nodes.ContainsKey(start) || !nodes.ContainsKey(goal))
-            return null;
-
-        // Reset node costs if this is not the first calculation (optimization)
-        if (resetNodeCosts)
-            ResetNodeCosts(nodes);
-
-        PrintUpdateTimeLog("PathGenerator: Starting pathfinding...", false);
-        var openSet = new SortedSet<PathNode>(new PathNodeComparer());
-        var closedSet = new HashSet<PathNode>();
-
-        var startNode = nodes[start];
-        var goalNode = nodes[goal];
-
-        startNode.CostFromStart = 0f;
-        startNode.HeuristicCost = CalculateHeuristic(start, goal);
-
-        openSet.Add(startNode);
-
-        while (openSet.Count > 0)
-        {
-            var current = openSet.Min!;
-            if (ReferenceEquals(current, goalNode))
-            {
-                PrintUpdateTimeLog("PathGenerator: Finished pathfinding");
-                var path = RetracePath(goalNode);
-                ResetNodeCosts(nodes);
-                return path;
-            }
-
-            openSet.Remove(current);
-            closedSet.Add(current);
-
-            foreach (var neighbour in current.Neighbours)
-            {
-                if (closedSet.Contains(neighbour))
-                    continue;
-
-                bool diagonal =
-                    neighbour.Position.x != current.Position.x &&
-                    neighbour.Position.y != current.Position.y;
-
-                float stepCost = diagonal ? MathF.Sqrt(2) : 1f;
-
-                float newCost =
-                    current.CostFromStart +
-                    stepCost +
-                    neighbour.MovementPenalty;
-
-                if (newCost < neighbour.CostFromStart)
-                {
-                    if (openSet.Contains(neighbour))
-                        openSet.Remove(neighbour);
-
-                    neighbour.CostFromStart = newCost;
-                    neighbour.HeuristicCost = CalculateHeuristic(neighbour.Position, goal);
-                    neighbour.ParentNode = current;
-
-                    openSet.Add(neighbour);
-                }
-            }
-        }
-
-        PrintUpdateTimeLog("PathGenerator: No path found");
-        ResetNodeCosts(nodes);
-        return null;
-    }
-    private static float CalculateHeuristic(Vect2D a, Vect2D b)
+    public static float CalculateHeuristic(Vect2D a, Vect2D b)
     {
         return Math.Abs(a.x - b.x) + Math.Abs(a.y - b.y);
     }
 
-    private static List<Vect2D> RetracePath(PathNode goal)
+    public static List<Vect2D> RetracePath(PathNode goal)
     {
         var path = new List<Vect2D>();
         var current = goal;
@@ -222,4 +107,84 @@ public static class PathFindingUtils
         path.Reverse();
         return path;
     }
+
+    public static Dictionary<Vect2D, PathNode> CreatePathNodesFromMap(
+        NodeContainerData container)
+    {
+        var nodes = new Dictionary<Vect2D, PathNode>();
+        var timeLogger = new TimeLogger();
+
+        timeLogger.Print("PathFindingUtils: Creating path node generation", false);
+        foreach (var position in container.NodesFloor)
+        {
+            var type = container.NodesObjects.ContainsKey(position)
+                ? container.NodesObjects[position]
+                : TileSpawnType.Default;
+            nodes.Add(position, new PathNode
+            {
+                Position = position,
+                NodeType = type,
+                MovementPenalty = GetNodeMovementPenalty(type)
+            });
+        }
+
+        timeLogger.Print("PathFindingUtils: Finished path node generation");
+        timeLogger.Print("PathFindingUtils: Assigning neighbours", false);
+        foreach (var pair in nodes)
+        {
+            pair.Value.Neighbours = GetNeighbours(pair.Key, nodes);
+        }
+
+        timeLogger.Print("PathFindingUtils: Finished assigning node neighbours");
+        return nodes;
+    }
+
+    public class TimeLogger
+    {
+        public DateTime StartTime { get; set; } = DateTime.Now;
+        private bool includePrintLog = false;
+        public TimeLogger(bool includePrintLog = true)
+        {
+            this.includePrintLog = includePrintLog;
+            StartTime = DateTime.Now;
+        }
+        public void Print(string message, bool printTime = true)
+        {
+            if (includePrintLog == false)
+                return;
+
+            var endTime = DateTime.Now;
+            var duration = endTime - StartTime;
+            string logMessage = printTime
+                ? $"{message} in {duration.TotalMilliseconds} ms"
+                : message;
+            Console.WriteLine(logMessage);
+            StartTime = DateTime.Now;
+        }
+    }
+
+    public sealed class PathNodeComparer : IComparer<PathNode>
+    {
+        public int Compare(PathNode? a, PathNode? b)
+        {
+            if (ReferenceEquals(a, b)) return 0;
+            if (a is null) return -1;
+            if (b is null) return 1;
+
+            int compare = a.TotalCost.CompareTo(b.TotalCost);
+            if (compare != 0) return compare;
+
+            compare = a.HeuristicCost.CompareTo(b.HeuristicCost);
+            if (compare != 0) return compare;
+
+            compare = a.Position.x.CompareTo(b.Position.x);
+            if (compare != 0) return compare;
+
+            compare = a.Position.y.CompareTo(b.Position.y);
+            if (compare != 0) return compare;
+
+            return RuntimeHelpers.GetHashCode(a).CompareTo(RuntimeHelpers.GetHashCode(b));
+        }
+    }
 }
+

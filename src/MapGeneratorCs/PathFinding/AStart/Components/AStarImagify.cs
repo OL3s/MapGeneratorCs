@@ -4,9 +4,9 @@ using SixLabors.ImageSharp.Formats.Png;
 using MapGeneratorCs.Types;
 using System.Linq;
 
-namespace MapGeneratorCs.Image;
+namespace MapGeneratorCs.PathFinding.AStar.Image;
 
-public class PathImagify
+public class AStarImagify
 {
     public static void SavePathAndMapToImage(MapConstructor map, List<Vect2D> path, string filePath = "export/", string filename = "path_output.png")
     {
