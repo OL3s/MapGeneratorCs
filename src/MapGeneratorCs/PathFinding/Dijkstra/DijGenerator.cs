@@ -1,6 +1,13 @@
-﻿namespace MapGeneratorCs.PathFinding.Dijkstra;
+﻿using MapGeneratorCs.Types;
+using MapGeneratorCs.PathFinding.Types;
+using MapGeneratorCs.Generator.Types;
+
+namespace MapGeneratorCs.PathFinding.Dijkstra;
 
 public static class DijGenerator
 {
-    
+    public static Dictionary<Vect2D, PathNode> GetDijkstraCompiledNodes(NodeContainerData container)
+    {
+        throw new NotImplementedException();
+    }
 }
