@@ -8,6 +8,8 @@ public class TimeLogger
         this.includePrintLog = includePrintLog;
         StartTime = DateTime.Now;
     }
+
+
     public void Print(string message, bool printTime = true)
     {
         if (includePrintLog == false)

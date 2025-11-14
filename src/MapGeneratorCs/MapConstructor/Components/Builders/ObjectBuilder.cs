@@ -7,7 +7,7 @@ public static class ObjectBuilder
     // Convert generate nodes to object nodes based on spawn factors
     public static void GenerateObjectNodes(MapConstructor map)
     {
-        Console.WriteLine("Converting Generate Nodes to Object Nodes in NodeContainer.NodesObjects...");
+        Console.WriteLine("ObjectBuilder: Converting Generate Nodes to Object Nodes...");
         Dictionary<int, GenerateObjectWeights> config = ConfigLoader.LoadObjectWeights();
         (int i, int p) count = (0, 0);
 
@@ -65,7 +65,7 @@ public static class ObjectBuilder
             if (count.i % 100_000 == 0)
             {
                 count.p++;
-                Console.WriteLine($"Progress: {count.p} hundred-thousand object nodes processed...");
+                Console.WriteLine($"ObjectBuilder: processed {count.p} hundred-thousand generate nodes...");
             }
         }
     }

@@ -2,14 +2,17 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Formats.Png;
 using MapGeneratorCs.Types;
-using System.Linq;
 
-namespace MapGeneratorCs.PathFinding.AStar.Image;
+namespace MapGeneratorCs.PathFinding.Image;
 
-public class AStarImagify
+public class PathImagify
 {
-    public static void SavePathAndMapToImage(MapConstructor map, List<Vect2D> path, string filePath = "export/", string filename = "path_output.png")
+    public static void SavePathAndMapToImage(MapConstructor map, List<Vect2D> path, string filename, string filePath = "export/")
     {
+
+        // add .png tag if missing
+        if (!filename.EndsWith(".png"))
+            filename += ".png";
 
         (int maxX, int maxY) = (0, 0);
         foreach (var floorNode in map.NodeContainer.NodesFloor)

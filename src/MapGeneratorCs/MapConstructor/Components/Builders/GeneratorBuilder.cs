@@ -8,18 +8,14 @@ public static class GeneratorBuilder
     public static void GenerateDefaultAndFlaggedNotes(MapConstructor map)
     {
         var mapConfig = map.mapConfig;
-        var spawnData = map.spawnWeights;
 
         if (map.NodeContainer.NodesFloorRaw.Count > 0)
-        {
-            Console.WriteLine("NodesFloor already generated. Skipping GenerateDefaultAndFlaggedNotes.");
-            return;
-        }
+            throw new InvalidOperationException("NodesFloorRaw already generated.");
 
         currentPosition = new Vect2D(0, 0);
         int hitFloorCount = 0;
 
-        Console.WriteLine("Generating NodeContainer.NodesFloorRaw and flagged nodes...");
+        Console.WriteLine("GeneratorBuilder: Generating Default and Flagged Nodes...");
         while (map.NodeContainer.NodesFloorRaw.Count < mapConfig.Length)
         {
             bool isStart = map.NodeContainer.NodesFloorRaw.Count == 0;
@@ -57,7 +53,7 @@ public static class GeneratorBuilder
                     currentPosition = new Vect2D(currentPosition.x + dir.x, currentPosition.y + dir.y);
 
             if (map.NodeContainer.NodesFloorRaw.Count % 1_000_000 == 0)
-                Console.WriteLine($"Progress: {map.NodeContainer.NodesFloorRaw.Count / 1_000_000}/{map.mapConfig.Length / 1_000_000} 1-million packs generated...");
+                Console.WriteLine($"GeneratorBuilder: processed {map.NodeContainer.NodesFloorRaw.Count / 1_000_000}/{map.mapConfig.Length / 1_000_000} million packs of floor/flag nodes...");
         }
 
         ApplyNodeRepositionBounds(map);
@@ -66,7 +62,7 @@ public static class GeneratorBuilder
 
     public static void FillDefaultNodesWithTypeNodes(MapConstructor map)
     {
-        Console.WriteLine("Filling Default Nodes to NodeContainer.NodesGenerate...");
+        Console.WriteLine("GeneratorBuilder: Filling Default Nodes with Type Nodes...");
         (int i, int p) count = (0, 0);
 
         // Iterate candidates and assign types
@@ -92,7 +88,7 @@ public static class GeneratorBuilder
             count.i++;
             if (count.i % 100_000 == 0) {
                 count.p++;
-                Console.WriteLine($"Progress: {count.p} hundred-thousand nodes check assigned...");
+                Console.WriteLine($"GeneratorBuilder: Progress: {count.p} hundred-thousand nodes check assigned...");
             }
         }
     }
@@ -156,12 +152,12 @@ public static class GeneratorBuilder
 
     private static HashSet<Vect2D> CreateNodeFloorThickness(HashSet<Vect2D> mapToThicken, MapConfig mapConfig)
     {
-        Console.WriteLine("Applying thickness to NodeContainer.NodesFloor...");
+        Console.WriteLine("GeneratorBuilder: Applying thickness to floor nodes...");
 
         // Ignore thickness zero or less
         if (mapConfig.Thickness <= 0)
         {
-            Console.WriteLine("No thickness applied.");
+            Console.WriteLine("GeneratorBuilder: No thickness applied.");
             return mapToThicken;
         }
 
@@ -175,7 +171,7 @@ public static class GeneratorBuilder
                         nodesFloorThickness.Add(new Vect2D(p.x + dx, p.y + dy));
 
             if (nodesFloorThickness.Count % 1_000_000 == 0)
-                Console.WriteLine($"Progress: {nodesFloorThickness.Count / 1_000_000}/{mapConfig.Length / 1_000_000} 1-million packs generated...");
+                Console.WriteLine($"GeneratorBuilder: processed {nodesFloorThickness.Count / 1_000_000}/{mapConfig.Length / 1_000_000} million nodes...");
         }
 
         return nodesFloorThickness;

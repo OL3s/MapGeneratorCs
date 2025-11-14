@@ -1,46 +1,49 @@
 using MapGeneratorCs.Types;
 using MapGeneratorCs.PathFinding.Types;
 using MapGeneratorCs.Logging;
+using MapGeneratorCs.PathFinding.Utils;
+using System.Transactions;
 
 namespace MapGeneratorCs.PathFinding.AStar.Utils;
     
 public static class AStarUtils
 {
-
-    public static List<Vect2D>? FindPath(Dictionary<Vect2D, PathNode> nodes, Vect2D start, Vect2D goal, bool resetNodeCosts)
+    public static List<Vect2D>? FindPath(PathNodes pathNodes, Vect2D start, Vect2D goal, bool resetNodeCosts)
     {
         var timeLogger = new TimeLogger();
-        if (!nodes.ContainsKey(start) || !nodes.ContainsKey(goal))
+        if (!pathNodes.ContainsKey(start) || !pathNodes.ContainsKey(goal))
             return null;
 
-        // Reset node costs if this is not the first calculation (optimization)
         if (resetNodeCosts)
-            PathFindingUtils.ResetNodeCosts(nodes);
+            PathFindingUtils.ResetNodeCosts(pathNodes);
 
-        timeLogger.Print("PathGenerator: Starting pathfinding...", false);
-        var openSet = new SortedSet<PathNode>(new PathNodeComparer());
+        timeLogger.Print("AStarUtils: Starting pathfinding...", false);
+
         var closedSet = new HashSet<PathNode>();
+        var openPq = new PriorityQueue<PathNode, float>();
 
-        var startNode = nodes[start];
-        var goalNode = nodes[goal];
+        var startNode = pathNodes[start];
+        var goalNode = pathNodes[goal];
 
         startNode.CostFromStart = 0f;
         startNode.HeuristicCost = PathFindingUtils.CalculateHeuristic(start, goal);
 
-        openSet.Add(startNode);
+        openPq.Enqueue(startNode, startNode.TotalCost);
 
-        while (openSet.Count > 0)
+        while (openPq.TryDequeue(out var current, out var priority))
         {
-            var current = openSet.Min!;
+            // Skip stale entries (priority may be outdated)
+            if (!current.TotalCost.Equals(priority))
+                continue;
+
             if (ReferenceEquals(current, goalNode))
             {
-                timeLogger.Print("PathGenerator: Finished pathfinding");
+                timeLogger.Print("AStarUtils: Finished pathfinding");
                 var path = PathFindingUtils.RetracePath(goalNode);
-                PathFindingUtils.ResetNodeCosts(nodes);
+                PathFindingUtils.ResetNodeCosts(pathNodes);
                 return path;
             }
 
-            openSet.Remove(current);
             closedSet.Add(current);
 
             foreach (var neighbour in current.Neighbours)
@@ -61,20 +64,18 @@ public static class AStarUtils
 
                 if (newCost < neighbour.CostFromStart)
                 {
-                    if (openSet.Contains(neighbour))
-                        openSet.Remove(neighbour);
-
                     neighbour.CostFromStart = newCost;
                     neighbour.HeuristicCost = PathFindingUtils.CalculateHeuristic(neighbour.Position, goal);
                     neighbour.ParentNode = current;
 
-                    openSet.Add(neighbour);
+                    // enqueue with updated f = g + h; we allow duplicates and skip stale on dequeue
+                    openPq.Enqueue(neighbour, neighbour.TotalCost);
                 }
             }
         }
 
-        timeLogger.Print("PathGenerator: No path found");
-        PathFindingUtils.ResetNodeCosts(nodes);
+        timeLogger.Print("AStarUtils: No path found");
+        PathFindingUtils.ResetNodeCosts(pathNodes);
         return null;
     }
 

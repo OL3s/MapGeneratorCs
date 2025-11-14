@@ -29,7 +29,7 @@ public class MapConstructor
     public void GenerateMap()
     {
         // Start details
-        Console.WriteLine("Starting Map Generation...");
+        Console.WriteLine("MapConstructor: Starting Map Generation...");
         this.random = (mapConfig.Seed == null) ? this.random : new Random((int)mapConfig.Seed);
 
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();

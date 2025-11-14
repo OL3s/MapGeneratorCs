@@ -6,7 +6,7 @@ public static class JsonMapBuilder
 {
     public static void SaveMapAsJson(MapConstructor map, string filePath)
     {
-        Console.WriteLine($"Saving map to JSON {filePath}...");
+        Console.WriteLine($"JsonMapBuilder: Saving map to JSON {filePath}...");
         var options = new JsonSerializerOptions { WriteIndented = true };
         options.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
 
@@ -41,7 +41,7 @@ public static class JsonMapBuilder
 
     public static MapConstructor LoadMapFromJson(string filePath)
     {
-        Console.WriteLine($"Loading map from JSON {filePath}...");
+        Console.WriteLine($"JsonMapBuilder: Loading map from JSON {filePath}...");
         var map = new MapConstructor();
         var options = new JsonSerializerOptions();
         options.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
@@ -77,7 +77,7 @@ public static class JsonMapBuilder
             map.NodeContainer.NodesObjects.Add(new Vect2D(int.Parse(keyParts[0]), int.Parse(keyParts[1])), kvp.Value);
         }
 
-        Console.WriteLine("Map loaded from JSON successfully.");
+        Console.WriteLine("JsonMapBuilder: Map loaded from JSON successfully.");
         return map;
     }
 

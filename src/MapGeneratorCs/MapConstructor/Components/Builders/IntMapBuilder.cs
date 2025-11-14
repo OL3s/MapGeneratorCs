@@ -24,7 +24,7 @@ public static class IntMapBuilder
         var height = maxY + map.mapConfig.Thickness + map.padding + 1;
         var grid = new int[width, height];
 
-        Console.WriteLine($"Converting to IntMap2D ({width}x{height})...");
+        Console.WriteLine($"IntMapBuilder: Converting to IntMap2D ({width}x{height})...");
 
         foreach (var p in map.NodeContainer.NodesFloor)
             if (p.x >= 0 && p.x < width && p.y >= 0 && p.y < height)
@@ -53,7 +53,7 @@ public static class IntMapBuilder
     {
         int w = grid.GetLength(0);
         int h = grid.GetLength(1);
-        Console.WriteLine($"Saving map to {filePath} ({w}x{h})...");
+        Console.WriteLine($"IntMapBuilder: Saving map to {filePath} ({w}x{h})...");
 
         using var image = new Image<Rgba32>(w, h);
         for (int x = 0; x < w; x++)

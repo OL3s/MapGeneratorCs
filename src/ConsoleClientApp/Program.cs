@@ -1,5 +1,9 @@
 ﻿using MapGeneratorCs;
+using MapGeneratorCs.Types;
 using MapGeneratorCs.PathFinding.AStar;
+using MapGeneratorCs.PathFinding.Dijkstra.Utils;
+using MapGeneratorCs.PathFinding.Utils;
+using MapGeneratorCs.PathFinding.Dijkstra;
 
 internal class Program
 {
@@ -9,9 +13,10 @@ internal class Program
         map.GenerateMap();
         map.SaveMapAsImage();
 
-        var aStar = new AStarGenerator(map.NodeContainer, includePrintLog: true);
+        
+        var dij = new DijGenerator(map.NodeContainer, map.StartPosition);
 
-        // use static helper instead of instance method
+        // Find closest object nodes of a specific type
         var closest = map.FindClosestObjectNodesOfTypeByAirDistance(
             new Vect2D(10, 10),
             map.NodeContainer.NodesObjects,
@@ -19,21 +24,29 @@ internal class Program
             maxObjectCount: 5
         );
 
+        // pathfinding A*
+        var aStar = new AStarGenerator(map.NodeContainer);
         var startPos = map.StartPosition;
         var goalPos = map.EndPosition;
-
-
         var pathToGoal = aStar.FindPath(
             startPos,
             goalPos
         );
 
-        if (pathToGoal == null)
-        {
-            Console.WriteLine("No path found from start to goal.");
-            return;
-        }
+        // pathfinding Dijkstra
+        var dijPathToGoal = dij.FindPath(
+            goalPos
+        );
         
         aStar.SavePathAndMapToImage(map, pathToGoal);
+        dij.SavePathAndMapToImage(map, dijPathToGoal);
+
+        // dij single-target pathfinding
+        var dijSingleTargetPath = DijUtils.FindDijPathFromMap(
+            map.NodeContainer,
+            map.StartPosition,
+            map.EndPosition
+        );
+        dij.SavePathAndMapToImage(map, dijSingleTargetPath);
     }
 }

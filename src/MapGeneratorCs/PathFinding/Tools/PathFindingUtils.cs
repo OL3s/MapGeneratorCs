@@ -1,12 +1,32 @@
+using System;
+using System.Collections.Generic;
 using MapGeneratorCs.Types;
 using MapGeneratorCs.PathFinding.Types;
 using MapGeneratorCs.Logging;
 using MapGeneratorCs.Generator.Types;
 
-namespace MapGeneratorCs.PathFinding;
+namespace MapGeneratorCs.PathFinding.Utils;
 
 public static class PathFindingUtils
 {
+
+    // Pre-allocated offsets for optimized neighbour queries
+    private static readonly Vect2D[] OrthogonalOffsets = new[]
+    {
+        new Vect2D( 1, 0),
+        new Vect2D(-1, 0),
+        new Vect2D( 0, 1),
+        new Vect2D( 0,-1),
+    };
+
+    private static readonly Vect2D[] DiagonalOffsets = new[]
+    {
+        new Vect2D( 1, 1),
+        new Vect2D( 1,-1),
+        new Vect2D(-1, 1),
+        new Vect2D(-1,-1)
+    };
+
 
     public static float GetNodeMovementPenalty(TileSpawnType type) =>
         type switch
@@ -22,40 +42,27 @@ public static class PathFindingUtils
 
     public static HashSet<PathNode> GetNeighbours(
         Vect2D pos,
-        Dictionary<Vect2D, PathNode> nodes)
+        PathNodes nodes)
     {
-        var neighbours = new HashSet<PathNode>();
+        // small expected size (up to 8), pre-size to reduce rehashes
+        var neighbours = new HashSet<PathNode>(8);
 
-        var orthogonal = new[]
-        {
-            new Vect2D( 1, 0),
-            new Vect2D(-1, 0),
-            new Vect2D( 0, 1),
-            new Vect2D( 0,-1),
-        };
-
-        foreach (var offset in orthogonal)
+        // orthogonal neighbours (4 checks)
+        foreach (var offset in OrthogonalOffsets)
         {
             var neighbourPos = new Vect2D(pos.x + offset.x, pos.y + offset.y);
             if (nodes.TryGetValue(neighbourPos, out var neighbour))
                 neighbours.Add(neighbour);
         }
 
-        // diagonal only if both corners exist
-        var diagonal = new[]
-        {
-            new Vect2D( 1, 1),
-            new Vect2D( 1,-1),
-            new Vect2D(-1, 1),
-            new Vect2D(-1,-1)
-        };
-
-        foreach (var offset in diagonal)
+        // diagonal only if both adjacent orthogonal tiles exist
+        foreach (var offset in DiagonalOffsets)
         {
             var a = new Vect2D(pos.x + offset.x, pos.y);
             var b = new Vect2D(pos.x, pos.y + offset.y);
 
-            if (!nodes.ContainsKey(a) || !nodes.ContainsKey(b))
+            // TryGetValue to avoid double dictionary lookups with ContainsKey
+            if (!nodes.TryGetValue(a, out var aNode) || !nodes.TryGetValue(b, out var bNode))
                 continue;
 
             var diagPos = new Vect2D(pos.x + offset.x, pos.y + offset.y);
@@ -66,7 +73,7 @@ public static class PathFindingUtils
         return neighbours;
     }
 
-    public static void ResetNodeCosts(Dictionary<Vect2D, PathNode> pathNodes)
+    public static void ResetNodeCosts(PathNodes pathNodes)
     {
         var timeLogger = new TimeLogger();
         timeLogger.Print("PathFindingUtils: Resetting node costs", false);
@@ -99,10 +106,10 @@ public static class PathFindingUtils
         return path;
     }
 
-    public static Dictionary<Vect2D, PathNode> CreatePathNodesFromMap(
+    public static PathNodes CreatePathNodesFromMap(
         NodeContainerData container)
     {
-        var nodes = new Dictionary<Vect2D, PathNode>();
+        var nodes = new PathNodes();
         var timeLogger = new TimeLogger();
 
         timeLogger.Print("PathFindingUtils: Creating path node generation", false);
