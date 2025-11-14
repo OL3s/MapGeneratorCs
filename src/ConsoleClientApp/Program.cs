@@ -4,17 +4,17 @@ using MapGeneratorCs.PathFinding.AStar;
 using MapGeneratorCs.PathFinding.Dijkstra.Utils;
 using MapGeneratorCs.PathFinding.Utils;
 using MapGeneratorCs.PathFinding.Dijkstra;
+using MapGeneratorCs.PathFinding.Image;
 
 internal class Program
 {
     private static void Main(string[] args)
     {
         var map = new MapConstructor();
-        map.GenerateMap();
+        map.GenerateMap(includePathNodes: true);
         map.SaveMapAsImage();
 
-        
-        var dij = new DijGenerator(map.NodeContainer, map.StartPosition);
+        var dij = new DijGenerator(map.PathNodes, map.StartPosition);
 
         // Find closest object nodes of a specific type
         var closest = map.FindClosestObjectNodesOfTypeByAirDistance(
@@ -25,7 +25,7 @@ internal class Program
         );
 
         // pathfinding A*
-        var aStar = new AStarGenerator(map.NodeContainer);
+        var aStar = new AStarGenerator(map.PathNodes);
         var startPos = map.StartPosition;
         var goalPos = map.EndPosition;
         var pathToGoal = aStar.FindPath(
@@ -42,11 +42,13 @@ internal class Program
         dij.SavePathAndMapToImage(map, dijPathToGoal);
 
         // dij single-target pathfinding
-        var dijSingleTargetPath = DijUtils.FindDijPathFromMap(
-            map.NodeContainer,
+        var dijSingleTargetPath = DijUtils.FindDijPathFromPathNodes(
+            map.PathNodes,
             map.StartPosition,
             map.EndPosition
         );
-        dij.SavePathAndMapToImage(map, dijSingleTargetPath);
+
+        PathImagify.SavePathAndMapToImage(map, dijSingleTargetPath, "dij_single_target_path_output.png");
+        PathImagify.SaveDijFullMapToImage(dij.dijNodes, "dij_full_map_output.png");
     }
 }
