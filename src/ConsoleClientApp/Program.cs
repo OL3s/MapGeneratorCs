@@ -11,10 +11,8 @@ internal class Program
     private static void Main(string[] args)
     {
         var map = new MapConstructor();
-        map.GenerateMap(includePathNodes: true);
+        map.GenerateMap();
         map.SaveMapAsImage();
-
-        var dij = new DijGenerator(map.PathNodes, map.StartPosition);
 
         // Find closest object nodes of a specific type
         var closest = map.FindClosestObjectNodesOfTypeByAirDistance(
@@ -25,7 +23,7 @@ internal class Program
         );
 
         // pathfinding A*
-        var aStar = new AStarGenerator(map.PathNodes);
+        var aStar = new AStarGenerator(map.NodeContainer);
         var startPos = map.StartPosition;
         var goalPos = map.EndPosition;
         var pathToGoal = aStar.FindPath(
@@ -33,22 +31,6 @@ internal class Program
             goalPos
         );
 
-        // pathfinding Dijkstra
-        var dijPathToGoal = dij.FindPath(
-            goalPos
-        );
-        
         aStar.SavePathAndMapToImage(map, pathToGoal);
-        dij.SavePathAndMapToImage(map, dijPathToGoal);
-
-        // dij single-target pathfinding
-        var dijSingleTargetPath = DijUtils.FindDijPathFromPathNodes(
-            map.PathNodes,
-            map.StartPosition,
-            map.EndPosition
-        );
-
-        PathImagify.SavePathAndMapToImage(map, dijSingleTargetPath, "dij_single_target_path_output.png");
-        PathImagify.SaveDijFullMapToImage(dij.dijNodes, "dij_full_map_output.png");
     }
 }
