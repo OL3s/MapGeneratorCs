@@ -1,87 +1,78 @@
 using MapGeneratorCs.Types;
 using MapGeneratorCs.PathFinding.Types;
 using MapGeneratorCs.Logging;
-using MapGeneratorCs.PathFinding.Utils;
 
 namespace MapGeneratorCs.PathFinding.Dijkstra.Utils;
 public static class DijUtils
 {
     // Creates a raw Dijkstra path not using precomputation
-   public static List<Vect2D>? CreateDijPathFromPathNodes(PathNodes pathNodes, Vect2D start, Vect2D end)
+    public static List<Vect2D>? CreateDijPathFromPathNodes(PathNodes pathNodes, Vect2D start, Vect2D end)
     {
         var timeLogger = new TimeLogger();
         timeLogger.Print("DijUtils.CreateDijPathFromPathNodes starting", false);
 
-        if (pathNodes.Count == 0 || pathNodes == null)
+        if (pathNodes == null || pathNodes.Count == 0)
             throw new ArgumentException("Path nodes dictionary is empty.");
-
-        var dijDict = new DijNodes(pathNodes, start);
-        dijDict.ResetNodeCosts();
-
-        // Validate start/end presence
-        if (!dijDict.ContainsKey(start) || !dijDict.ContainsKey(end))
+        if (!pathNodes.ContainsKey(start) || !pathNodes.ContainsKey(end))
             throw new ArgumentException("Start or end position not found in path nodes.");
-
-        // If start == end, return trivial path
         if (start.Equals(end))
         {
             timeLogger.Print("DijUtils.CreateDijPathFromPathNodes completed", true);
             return new List<Vect2D> { start };
         }
 
-        dijDict[start].CostFromStart = 0f;
+        var dist = new Dictionary<Vect2D, float>(pathNodes.Count);
+        var prev = new Dictionary<Vect2D, Vect2D?>(pathNodes.Count);
+        foreach (var kv in pathNodes) { dist[kv.Key] = float.MaxValue; prev[kv.Key] = null; }
+        dist[start] = 0f;
 
-        // Use a priority queue for single-target Dijkstra as well.
-        var priorityQueue = new PriorityQueue<Vect2D, float>();
-        priorityQueue.Enqueue(start, 0f);
+        var pq = new PriorityQueue<Vect2D, float>();
+        pq.Enqueue(start, 0f);
 
-        while (priorityQueue.TryDequeue(out var currentPos2, out var currentPriority))
+        while (pq.TryDequeue(out var cur, out var prio))
         {
-            var currentNode = dijDict[currentPos2];
+            if (!dist[cur].Equals(prio)) continue;
+            if (cur.Equals(end)) break;
 
-            // Skip stale entries
-            if (!currentNode.CostFromStart.Equals(currentPriority))
-                continue;
-
-            // If we've reached the target, build and return path immediately
-            if (currentPos2.Equals(end)){
-                timeLogger.Print("DijUtils.CreateDijPathFromPathNodes completed", true);
-                return FindDijPathFromDijNodes(dijDict, end);
-            }
-
-
-            foreach (var neighborRef in currentNode.Neighbours)
+            var node = pathNodes[cur];
+            foreach (var nRef in node.Neighbours)
             {
-                var neighborNode = dijDict[neighborRef.Position];
-
-                bool diagonal = neighborRef.Position.x != currentNode.Position.x &&
-                                neighborRef.Position.y != currentNode.Position.y;
-                float stepCost = diagonal ? MathF.Sqrt(2) : 1f;
-
-                float tentativeCost = currentNode.CostFromStart + stepCost + neighborRef.MovementPenalty;
-                if (tentativeCost < neighborNode.CostFromStart)
+                var np = nRef.Position;
+                bool diagonal = np.x != cur.x && np.y != cur.y;
+                float step = diagonal ? MathF.Sqrt(2) : 1f;
+                float tentative = dist[cur] + step + nRef.MovementPenalty;
+                if (tentative < dist[np])
                 {
-                    neighborNode.CostFromStart = tentativeCost;
-                    neighborNode.ParentNode = currentNode;
-                    priorityQueue.Enqueue(neighborRef.Position, tentativeCost);
+                    dist[np] = tentative;
+                    prev[np] = cur;
+                    pq.Enqueue(np, tentative);
                 }
             }
         }
+
+        if (!prev[end].HasValue) { timeLogger.Print("DijUtils.CreateDijPathFromPathNodes completed", true); return null; }
+
+        var path = new List<Vect2D>();
+        var c = end;
+        while (true)
+        {
+            path.Add(c);
+            if (c.Equals(start)) break;
+            c = prev[c]!.Value;
+        }
+        path.Reverse();
         timeLogger.Print("DijUtils.CreateDijPathFromPathNodes completed", true);
-        return null;
+        return path;
     }
 
-
-    // Used to find the fastest path from a precomputed Dijkstra path map
+    // Legacy helper kept for compatibility with DijNodes callers
     public static List<Vect2D>? FindDijPathFromDijNodes(DijNodes dijNodes, Vect2D end)
     {
-
         if (!dijNodes.ContainsKey(end))
             return null;
 
         var path = new List<Vect2D>();
         var currentNode = dijNodes[end];
-
         while (currentNode != null)
         {
             path.Add(currentNode.Position);
@@ -89,7 +80,6 @@ public static class DijUtils
                 break;
             currentNode = currentNode.ParentNode;
         }
-
         path.Reverse();
         return path;
     }

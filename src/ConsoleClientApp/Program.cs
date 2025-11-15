@@ -61,15 +61,15 @@ internal class Program
 
         aStar.SavePathAndMapToImage(pathToGoal);
         dijGenerator.SavePathToImage(dijPrecompPath);
-        PathImagify.SavePathValuesToImage(dijGenerator.DijNodes, "dijkstra_cost_output.png");
+
+        // draw precomputed dist map
+        PathImagify.SavePathValuesToImage(map.PathNodes, dijGenerator.Dist, "dijkstra_cost_output.png");
         PathImagify.SavePathToImage(map.PathNodes, dijPath, "dijkstra_path_output.png");
-        PathImagify.SavePointOfInterestToImage(map.PathNodes, altGenerator.Landmarks.GetPositions(), "alt_landmark_positions.png");
-        PathImagify.SavePathToImage(map.PathNodes, altPath, "alt_path_output.png");
 
         int i = 0;
         foreach (var landmark in altGenerator.Landmarks)
         {
-            PathImagify.SavePathValuesToImage(landmark.DijNodes, $"alt_landmark_{i+1}_cost_output.png");
+            PathImagify.SavePathValuesToImage(map.PathNodes, landmark.Dist, $"alt_landmark_{i+1}_cost_output.png");
             i++;
         }
     }

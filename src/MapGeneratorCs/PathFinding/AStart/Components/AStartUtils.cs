@@ -7,64 +7,64 @@ namespace MapGeneratorCs.PathFinding.AStar.Utils;
     
 public static class AStarUtils
 {
-    public static List<Vect2D>? FindPath(PathNodes pathNodes, Vect2D start, Vect2D goal)
+        public static List<Vect2D>? FindPath(PathNodes pathNodes, Vect2D start, Vect2D goal)
     {
         var timeLogger = new TimeLogger();
         timeLogger.Print("AStarUtils.FindPath starting", false);
         if (!pathNodes.ContainsKey(start) || !pathNodes.ContainsKey(goal))
             return null;
 
-        pathNodes.ResetNodeCosts();
-        var closedSet = new HashSet<PathNode>();
-        var openPq = new PriorityQueue<PathNode, float>();
+        // per-run state
+        var g = new Dictionary<Vect2D, float>(pathNodes.Count);
+        var cameFrom = new Dictionary<Vect2D, Vect2D?>(pathNodes.Count);
+        foreach (var kv in pathNodes) { g[kv.Key] = float.MaxValue; cameFrom[kv.Key] = null; }
+        g[start] = 0f;
 
-        var startNode = pathNodes[start];
-        var goalNode = pathNodes[goal];
+        float Heuristic(Vect2D a) => PathFindingUtils.CalculateHeuristic(a, goal);
 
-        startNode.CostFromStart = 0f;
-        startNode.HeuristicCost = PathFindingUtils.CalculateHeuristic(start, goal);
+        var open = new PriorityQueue<Vect2D, float>();
+        open.Enqueue(start, Heuristic(start));
 
-        openPq.Enqueue(startNode, startNode.TotalCost);
+        var closed = new HashSet<Vect2D>();
 
-        while (openPq.TryDequeue(out var current, out var priority))
+        while (open.TryDequeue(out var currentPos, out var priority))
         {
-            // Skip stale entries (priority may be outdated)
-            if (!current.TotalCost.Equals(priority))
+            var fNow = g[currentPos] + Heuristic(currentPos);
+            if (!fNow.Equals(priority))
                 continue;
 
-            if (ReferenceEquals(current, goalNode))
+            if (currentPos.Equals(goal))
             {
-                var path = PathFindingUtils.RetracePath(goalNode);
+                var path = new List<Vect2D>();
+                var c = goal;
+                while (true)
+                {
+                    path.Add(c);
+                    if (c.Equals(start)) break;
+                    c = cameFrom[c]!.Value;
+                }
+                path.Reverse();
                 timeLogger.Print("AStarUtils.FindPath completed", true);
                 return path;
             }
 
-            closedSet.Add(current);
+            closed.Add(currentPos);
+            var current = pathNodes[currentPos];
 
             foreach (var neighbour in current.Neighbours)
             {
-                if (closedSet.Contains(neighbour))
-                    continue;
+                var np = neighbour.Position;
+                if (closed.Contains(np)) continue;
 
-                bool diagonal =
-                    neighbour.Position.x != current.Position.x &&
-                    neighbour.Position.y != current.Position.y;
-
+                bool diagonal = np.x != currentPos.x && np.y != currentPos.y;
                 float stepCost = diagonal ? MathF.Sqrt(2) : 1f;
+                float tentative = g[currentPos] + stepCost + neighbour.MovementPenalty;
 
-                float newCost =
-                    current.CostFromStart +
-                    stepCost +
-                    neighbour.MovementPenalty;
-
-                if (newCost < neighbour.CostFromStart)
+                if (tentative < g[np])
                 {
-                    neighbour.CostFromStart = newCost;
-                    neighbour.HeuristicCost = PathFindingUtils.CalculateHeuristic(neighbour.Position, goal);
-                    neighbour.ParentNode = current;
-
-                    // enqueue with updated f = g + h; we allow duplicates and skip stale on dequeue
-                    openPq.Enqueue(neighbour, neighbour.TotalCost);
+                    g[np] = tentative;
+                    cameFrom[np] = currentPos;
+                    open.Enqueue(np, tentative + Heuristic(np));
                 }
             }
         }
@@ -72,5 +72,4 @@ public static class AStarUtils
         timeLogger.Print("AStarUtils.FindPath completed (not found)", true);
         return null;
     }
-
 }

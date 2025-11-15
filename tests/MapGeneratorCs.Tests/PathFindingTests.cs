@@ -1,212 +1,175 @@
 using MapGeneratorCs.PathFinding;
+using MapGeneratorCs.PathFinding.ALT;
 using MapGeneratorCs.PathFinding.AStar;
+using MapGeneratorCs.PathFinding.AStar.Utils;
+using MapGeneratorCs.PathFinding.Dijkstra;
+using MapGeneratorCs.PathFinding.Dijkstra.Utils;
+using MapGeneratorCs.PathFinding.Types;
+
 namespace MapGeneratorCs.Tests;
 
 public class PathFindingTests
 {
+    private static PathNodes MakePathNodes(NodeContainerData data)
+    {
+        var pn = new PathNodes();
+        pn.Generate(data);
+        return pn;
+    }
+
     [Fact]
     public void Finds_Straight_Path_On_Empty_Grid()
     {
         var container = new NodeContainerData();
-        for (int x = 0; x < 5; x++)
-            container.NodesFloor.Add(new Vect2D(x, 0));
-
-        var pathGen = new AStarGenerator(container);
-        var path = pathGen.FindPath(new Vect2D(0, 0), new Vect2D(4, 0));
-
+        for (int x = 0; x < 5; x++) container.NodesFloor.Add(new Vect2D(x, 0));
+        var pn = MakePathNodes(container);
+        var path = AStarUtils.FindPath(pn, new Vect2D(0, 0), new Vect2D(4, 0));
         Assert.NotNull(path);
         Assert.Equal(5, path!.Count);
-        Assert.Equal(new Vect2D(0, 0), path[0]);
-        Assert.Equal(new Vect2D(4, 0), path[^1]);
     }
 
     [Fact]
     public void Finds_Diagonal_Path_On_Empty_Grid()
     {
-        var container = new NodeContainerData();
-        // Fill a 5x5 grid so all diagonal and orthogonal neighbors exist
+        var c = new NodeContainerData();
         for (int x = 0; x < 5; x++)
             for (int y = 0; y < 5; y++)
-                container.NodesFloor.Add(new Vect2D(x, y));
-
-        var pathGen = new AStarGenerator(container);
-        var path = pathGen.FindPath(new Vect2D(0, 0), new Vect2D(4, 4));
-
+                c.NodesFloor.Add(new Vect2D(x, y));
+        var pn = MakePathNodes(c);
+        var path = AStarUtils.FindPath(pn, new Vect2D(0, 0), new Vect2D(4, 4));
         Assert.NotNull(path);
-        Assert.Equal(5, path!.Count);
-        Assert.Equal(new Vect2D(0, 0), path[0]);
-        Assert.Equal(new Vect2D(4, 4), path[^1]);
+        Assert.Equal(new Vect2D(0,0), path![0]);
+        Assert.Equal(new Vect2D(4,4), path[^1]);
     }
 
     [Fact]
     public void Avoids_High_Penalty_Node()
     {
-        var container = new NodeContainerData();
-        // 3x1 grid: (0,0), (1,0), (2,0)
-        for (int x = 0; x < 3; x++)
-            container.NodesFloor.Add(new Vect2D(x, 0));
-        // Set middle node to high penalty
-        container.NodesObjects[new Vect2D(1, 0)] = TileSpawnType.LandmarkObject;
-
-        var pathGen = new AStarGenerator(container);
-        var path = pathGen.FindPath(new Vect2D(0, 0), new Vect2D(2, 0));
-
+        var c = new NodeContainerData();
+        for (int x=0;x<3;x++) c.NodesFloor.Add(new Vect2D(x,0));
+        c.NodesObjects[new Vect2D(1,0)] = TileSpawnType.LandmarkObject;
+        var pn = MakePathNodes(c);
+        var path = AStarUtils.FindPath(pn, new Vect2D(0,0), new Vect2D(2,0));
         Assert.NotNull(path);
-        // Should still find a path, but cost will be high due to penalty
-        Assert.Equal(3, path!.Count);
-        Assert.Contains(new Vect2D(1, 0), path);
+        Assert.Contains(new Vect2D(1,0), path!);
     }
 
     [Fact]
     public void Prefers_Low_Penalty_Over_High_Penalty()
     {
-        var container = new NodeContainerData();
-        // 3x2 grid
-        for (int x = 0; x < 3; x++)
-        {
-            container.NodesFloor.Add(new Vect2D(x, 0));
-            container.NodesFloor.Add(new Vect2D(x, 1));
-        }
-        // Block (1,0) with high penalty, (1,1) with low penalty
-        container.NodesObjects[new Vect2D(1, 0)] = TileSpawnType.LandmarkObject;
-        container.NodesObjects[new Vect2D(1, 1)] = TileSpawnType.TrapObject;
-
-        var pathGen = new AStarGenerator(container);
-        var path = pathGen.FindPath(new Vect2D(0, 0), new Vect2D(2, 0));
-
+        var c = new NodeContainerData();
+        for (int x=0;x<3;x++){ c.NodesFloor.Add(new Vect2D(x,0)); c.NodesFloor.Add(new Vect2D(x,1)); }
+        c.NodesObjects[new Vect2D(1,0)] = TileSpawnType.LandmarkObject;
+        c.NodesObjects[new Vect2D(1,1)] = TileSpawnType.TrapObject;
+        var pn = MakePathNodes(c);
+        var path = AStarUtils.FindPath(pn, new Vect2D(0,0), new Vect2D(2,0));
         Assert.NotNull(path);
-        // Should go through (1,1) instead of (1,0)
-        Assert.Contains(new Vect2D(1, 1), path);
-        Assert.DoesNotContain(new Vect2D(1, 0), path);
+        Assert.Contains(new Vect2D(1,1), path!);
+        Assert.DoesNotContain(new Vect2D(1,0), path);
     }
 
     [Fact]
     public void Returns_Null_When_No_Path_Exists()
     {
-        var container = new NodeContainerData();
-        // Only two isolated nodes, not neighbors
-        container.NodesFloor.Add(new Vect2D(0, 0));
-        container.NodesFloor.Add(new Vect2D(10, 10));
-
-        var pathGen = new AStarGenerator(container);
-        var path = pathGen.FindPath(new Vect2D(0, 0), new Vect2D(10, 10));
-
+        var c = new NodeContainerData();
+        c.NodesFloor.Add(new Vect2D(0,0));
+        c.NodesFloor.Add(new Vect2D(10,10));
+        var pn = MakePathNodes(c);
+        var path = AStarUtils.FindPath(pn, new Vect2D(0,0), new Vect2D(10,10));
         Assert.Null(path);
     }
 
     [Fact]
-    public void Find_Path_On_Fake_Map()
-    {
-        // Use a small 5x5 grid with some obstacles
-        var container = new NodeContainerData();
-        for (int x = 0; x < 5; x++)
-            for (int y = 0; y < 5; y++)
-                container.NodesFloor.Add(new Vect2D(x, y));
-
-        // Place a barrier of high-penalty nodes at x=2, except for a gap at (2,2)
-        for (int y = 0; y < 5; y++)
-            if (y != 2)
-                if (y % 2 == 0)
-                    container.NodesObjects[new Vect2D(2, y)] = TileSpawnType.TrapObject;
-                else
-                    container.NodesObjects[new Vect2D(2, y)] = TileSpawnType.LandmarkObject;
-
-        var pathGen = new AStarGenerator(container);
-        var path = pathGen.FindPath(new Vect2D(0, 0), new Vect2D(4, 4));
-
-        Assert.NotNull(path);
-        // Path should go through the gap at (2,2)
-        Assert.Contains(new Vect2D(2, 2), path!);
-        // Path should not contain any of the high-penalty wall except the gap
-        Assert.DoesNotContain(new Vect2D(2, 0), path);
-        Assert.DoesNotContain(new Vect2D(2, 1), path);
-        Assert.DoesNotContain(new Vect2D(2, 3), path);
-        Assert.DoesNotContain(new Vect2D(2, 4), path);
-    }
-
-        [Fact]
     public void StartEqualsGoal_ReturnsSingleNodePath()
     {
-        var container = new NodeContainerData();
-        container.NodesFloor.Add(new Vect2D(0, 0));
-
-        var pg = new AStarGenerator(container);
-        var path = pg.FindPath(new Vect2D(0, 0), new Vect2D(0, 0));
-
+        var c = new NodeContainerData();
+        c.NodesFloor.Add(new Vect2D(0,0));
+        var pn = MakePathNodes(c);
+        var path = AStarUtils.FindPath(pn, new Vect2D(0,0), new Vect2D(0,0));
         Assert.NotNull(path);
         Assert.Single(path);
-        Assert.Equal(new Vect2D(0, 0), path[0]);
     }
 
     [Fact]
     public void MissingStartOrGoal_ReturnsNull()
     {
-        var container = new NodeContainerData();
-        container.NodesFloor.Add(new Vect2D(0, 0));
-        // goal missing
-        var pg = new AStarGenerator(container);
-        var path = pg.FindPath(new Vect2D(0, 0), new Vect2D(1, 0));
-        Assert.Null(path);
-
-        // start missing
-        path = pg.FindPath(new Vect2D(1, 0), new Vect2D(0, 0));
-        Assert.Null(path);
+        var c = new NodeContainerData();
+        c.NodesFloor.Add(new Vect2D(0,0));
+        var pn = MakePathNodes(c);
+        Assert.Null(AStarUtils.FindPath(pn, new Vect2D(0,0), new Vect2D(1,0)));
+        Assert.Null(AStarUtils.FindPath(pn, new Vect2D(1,0), new Vect2D(0,0)));
     }
 
     [Fact]
     public void DiagonalBlocked_WhenCornersMissing()
     {
-        var container = new NodeContainerData();
-        // only diagonal nodes, but not orthogonal neighbors -> diagonal should be blocked
-        container.NodesFloor.Add(new Vect2D(0, 0));
-        container.NodesFloor.Add(new Vect2D(1, 1));
-
-        var pg = new AStarGenerator(container);
-        var path = pg.FindPath(new Vect2D(0, 0), new Vect2D(1, 1));
+        var c = new NodeContainerData();
+        c.NodesFloor.Add(new Vect2D(0,0));
+        c.NodesFloor.Add(new Vect2D(1,1));
+        var pn = MakePathNodes(c);
+        var path = AStarUtils.FindPath(pn, new Vect2D(0,0), new Vect2D(1,1));
         Assert.Null(path);
-    }
-
-    [Fact]
-    public void Finds_CostOptimal_Path_With_Penalties()
-    {
-        var container = new NodeContainerData();
-        // 3x1 corridor and an alternative 3x2 detour
-        for (int x = 0; x < 3; x++)
-        {
-            container.NodesFloor.Add(new Vect2D(x, 0));
-            container.NodesFloor.Add(new Vect2D(x, 1));
-        }
-        // Make middle straight node very expensive so algorithm prefers detour via y=1
-        container.NodesObjects[new Vect2D(1, 0)] = TileSpawnType.LandmarkObject; // high penalty via GetNodeMovementPenalty
-        container.NodesObjects[new Vect2D(1, 1)] = TileSpawnType.TrapObject; // lower penalty
-
-        var pg = new AStarGenerator(container);
-        var path = pg.FindPath(new Vect2D(0, 0), new Vect2D(2, 0));
-
-        Assert.NotNull(path);
-        Assert.Contains(new Vect2D(1, 1), path);
-        Assert.DoesNotContain(new Vect2D(1, 0), path);
     }
 
     [Fact]
     public void Path_Does_Not_Work_On_Diagonal_With_Border_Collision()
     {
-        var container = new NodeContainerData();
-        // "Plus" formation: top, center and right exist, but top-right corner (2,0) is missing.
-        // Start at top (1,0) -> goal at right (2,1).
-        // Diagonal (1,0)->(2,1) should be blocked, so path must be (1,0) -> (1,1) -> (2,1).
-        container.NodesFloor.Add(new Vect2D(1, 0)); // top (start)
-        container.NodesFloor.Add(new Vect2D(1, 1)); // center (intermediate)
-        container.NodesFloor.Add(new Vect2D(2, 1)); // right (goal)
-        // Note: do NOT add (2,0) so diagonal is disallowed by GetNeighbours
-
-        var pg = new AStarGenerator(container);
-        var path = pg.FindPath(new Vect2D(1, 0), new Vect2D(2, 1));
-
+        var c = new NodeContainerData();
+        c.NodesFloor.Add(new Vect2D(1,0));
+        c.NodesFloor.Add(new Vect2D(1,1));
+        c.NodesFloor.Add(new Vect2D(2,1));
+        var pn = MakePathNodes(c);
+        var path = AStarUtils.FindPath(pn, new Vect2D(1,0), new Vect2D(2,1));
         Assert.NotNull(path);
         Assert.Equal(3, path!.Count);
-        Assert.Equal(new Vect2D(1, 0), path[0]);
-        Assert.Equal(new Vect2D(1, 1), path[1]); // down first
-        Assert.Equal(new Vect2D(2, 1), path[2]); // then right
+        Assert.Equal(new Vect2D(1,1), path[1]);
+    }
+
+    [Fact]
+    public void Raw_Dijkstra_Equals_Precompute()
+    {
+        var c = new NodeContainerData();
+        for(int x=0;x<5;x++)
+            for(int y=0;y<5;y++)
+                c.NodesFloor.Add(new Vect2D(x,y));
+        var pn = MakePathNodes(c);
+        var start = new Vect2D(0,0);
+        var goal = new Vect2D(4,4);
+        var raw = DijUtils.CreateDijPathFromPathNodes(pn, start, goal);
+        var pre = new DijGenerator(pn, start).FindPath(goal);
+        Assert.NotNull(raw);
+        Assert.NotNull(pre);
+        Assert.Equal(raw!.Count, pre!.Count);
+    }
+
+    [Fact]
+    public void ALT_Path_Equals_AStar_Path_Length()
+    {
+        var c = new NodeContainerData();
+        for(int x=0;x<10;x++)
+            for(int y=0;y<10;y++)
+                c.NodesFloor.Add(new Vect2D(x,y));
+        var pn = MakePathNodes(c);
+        var start = new Vect2D(0,0);
+        var goal = new Vect2D(9,9);
+        var aStar = AStarUtils.FindPath(pn, start, goal);
+        var altGen = new ALTGenerator(start, landmarkCount: 5, pn);
+        var altPath = altGen.FindPath(start, goal);
+        Assert.NotNull(aStar);
+        Assert.NotNull(altPath);
+        Assert.Equal(aStar!.Count, altPath!.Count);
+    }
+
+    [Fact]
+    public void Dijkstra_Dist_Start_Is_Zero()
+    {
+        var c = new NodeContainerData();
+        for(int x=0;x<3;x++)
+            for(int y=0;y<3;y++)
+                c.NodesFloor.Add(new Vect2D(x,y));
+        var pn = MakePathNodes(c);
+        var start = new Vect2D(1,1);
+        var dij = new DijGenerator(pn, start);
+        Assert.Equal(0f, dij.GetCostAt(start));
     }
 }

@@ -20,7 +20,7 @@ public class ALTGenerator
         Landmarks = new Landmarks(landmarkCount, startPos, pathNodes);
     }
 
-    // ALT heuristic h(u,t) = max_l |d(l,t) - d(l,u)|
+    // ALT heuristic h(u,t) = max_l d(l,t) - d(l,u)
     private float HeuristicALT(in Vect2D node, in Vect2D goal)
     {
         float h = 0f;
@@ -121,10 +121,13 @@ public class Landmarks : List<Landmark>
         timeLogger.Print("ALT Landmark Generation Started", false);
         var dijGenerator = new DijGenerator(pathNodes, startPos);
 
-        // Get nodes sorted, longest distance first 
-        var dijNodesList = dijGenerator.DijNodes.Values.ToList();
-        dijNodesList.Sort((a, b) => b.CostFromStart.CompareTo(a.CostFromStart));
-        if (dijNodesList.Count == 0) return;
+        // Use precomputed distances instead of DijNodes
+        var farthestPositions = dijGenerator.Dist
+            .Where(kv => kv.Value < float.MaxValue)
+            .OrderByDescending(kv => kv.Value)
+            .Select(kv => kv.Key)
+            .ToList();
+        if (farthestPositions.Count == 0) return;
 
         var dims = pathNodes.Dimentions;
         float area = (float)dims.x * dims.y;
@@ -142,10 +145,9 @@ public class Landmarks : List<Landmark>
             }
         }
 
-        foreach (var node in dijNodesList)
+        foreach (var pos in farthestPositions)
         {
             if (selected.Count >= landmarkCount) break;
-            var pos = node.Position;
             if (blocked.Contains(pos)) continue;
 
             selected.Add(pos);
@@ -164,10 +166,9 @@ public class Landmarks : List<Landmark>
 
         if (selected.Count < landmarkCount)
         {
-            foreach (var node in dijNodesList)
+            foreach (var pos in farthestPositions)
             {
                 if (selected.Count >= landmarkCount) break;
-                var pos = node.Position;
                 if (!selected.Contains(pos))
                     selected.Add(pos);
             }

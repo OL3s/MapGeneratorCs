@@ -71,33 +71,45 @@ public class PathImagify
         Console.WriteLine($"Path image saved to {filePath + filename}");
     }
 
-    public static void SavePathValuesToImage(PathNodes pathNodes, string filename, string filePath = "export/")
+    public static void SavePathValuesToImage(PathNodes graph, Dictionary<Vect2D, float> dist, string filename, string filePath = "export/")
     {
-        // add .png tag if missing
         if (!filename.EndsWith(".png"))
             filename += ".png";
 
-        (int maxX, int maxY) = (0, 0);
-        foreach (var kvp in pathNodes)
+        int maxX = 0, maxY = 0;
+        foreach (var kv in graph)
         {
-            var pos = kvp.Key;
-            if (pos.x > maxX) maxX = pos.x;
-            if (pos.y > maxY) maxY = pos.y;
+            var p = kv.Key;
+            if (p.x > maxX) maxX = p.x;
+            if (p.y > maxY) maxY = p.y;
         }
 
         int width = maxX + 1;
         int height = maxY + 1;
-        using var image = new Image<Rgba32>(width, height);
-        float maxCost = pathNodes.Values.Any() ? pathNodes.Values.Max(n => n.CostFromStart) : 0f;
-        foreach (var kvp in pathNodes)
+
+        // Prevent OOM on huge images
+        const long MAX_PIXELS = 50_000_000;
+        long total = (long)width * height;
+        if (total > MAX_PIXELS)
         {
-            var pos = kvp.Key;
-            var node = kvp.Value;
+            Console.WriteLine($"PathImagify: skip saving '{filename}' - {width}x{height} exceeds pixel limit.");
+            return;
+        }
 
-            // Normalize cost to 0-255 range
-            byte intensity = maxCost > 0 ? (byte)(255 * (node.CostFromStart / maxCost)) : (byte)0;
+        using var image = new Image<Rgba32>(width, height);
 
-            // Grayscale based on cost
+        var finiteCosts = dist.Values.Where(v => v < float.MaxValue).ToList();
+        float maxCost = finiteCosts.Count > 0 ? finiteCosts.Max() : 0f;
+
+        foreach (var kv in graph)
+        {
+            var pos = kv.Key;
+            if (!dist.TryGetValue(pos, out var c) || c >= float.MaxValue || maxCost <= 0f)
+            {
+                image[pos.x, pos.y] = new Rgba32(0, 0, 0);
+                continue;
+            }
+            byte intensity = (byte)(255f * (c / maxCost));
             image[pos.x, pos.y] = new Rgba32(intensity, intensity, intensity);
         }
 
