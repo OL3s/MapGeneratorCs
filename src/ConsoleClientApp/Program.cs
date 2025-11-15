@@ -35,7 +35,7 @@ internal class Program
             maxObjectCount: 5
         );
 
-        // pathfinding A*
+        // pathfinding AStar
         var aStar = new AStarGenerator(map.PathNodes);
         var startPos = map.StartPosition;
         var goalPos = map.EndPosition;
@@ -57,12 +57,14 @@ internal class Program
 
         // ALT generator
         var altGenerator = new ALTGenerator(startPos, landmarkCount: 5, map.PathNodes);
+        var altPath = altGenerator.FindPath(startPos, goalPos);
 
         aStar.SavePathAndMapToImage(pathToGoal);
         dijGenerator.SavePathToImage(dijPrecompPath);
         PathImagify.SavePathValuesToImage(dijGenerator.DijNodes, "dijkstra_cost_output.png");
         PathImagify.SavePathToImage(map.PathNodes, dijPath, "dijkstra_path_output.png");
         PathImagify.SavePointOfInterestToImage(map.PathNodes, altGenerator.Landmarks.GetPositions(), "alt_landmark_positions.png");
+        PathImagify.SavePathToImage(map.PathNodes, altPath, "alt_path_output.png");
 
         int i = 0;
         foreach (var landmark in altGenerator.Landmarks)

@@ -11,9 +11,96 @@ namespace MapGeneratorCs.PathFinding.ALT;
 public class ALTGenerator
 {
     public Landmarks Landmarks { get; set; }
+    // hold the shared graph for running ALT-A*
+    private readonly PathNodes _pathNodes;
+
     public ALTGenerator(Vect2D startPos, int landmarkCount, PathNodes pathNodes)
     {
+        _pathNodes = pathNodes;
         Landmarks = new Landmarks(landmarkCount, startPos, pathNodes);
+    }
+
+    // ALT heuristic h(u,t) = max_l |d(l,t) - d(l,u)|
+    private float HeuristicALT(in Vect2D node, in Vect2D goal)
+    {
+        float h = 0f;
+        foreach (var lm in Landmarks)
+        {
+            var dGoal = lm.GetCostAt(goal);
+            var dNode = lm.GetCostAt(node);
+            if (dGoal == float.MaxValue || dNode == float.MaxValue)
+                continue;
+
+            float v = MathF.Abs(dGoal - dNode);
+            if (v > h) h = v;
+        }
+
+        // fallback if all landmarks are unreachable for this pair
+        if (h <= 0f)
+            h = PathFindingUtils.CalculateHeuristic(node, goal);
+        return h;
+    }
+
+    // A* that uses ALT heuristic
+    public List<Vect2D>? FindPath(Vect2D startPos, Vect2D goalPos)
+    {
+        var timeLogger = new TimeLogger();
+        timeLogger.Print("ALT AStar: FindPath starting", false);
+
+        if (!_pathNodes.ContainsKey(startPos) || !_pathNodes.ContainsKey(goalPos))
+            return null;
+
+        _pathNodes.ResetNodeCosts();
+
+        var open = new PriorityQueue<PathNode, float>();
+        var closed = new HashSet<PathNode>();
+
+        var startNode = _pathNodes[startPos];
+        var goalNode  = _pathNodes[goalPos];
+
+        startNode.CostFromStart = 0f;
+        startNode.HeuristicCost = HeuristicALT(startPos, goalPos);
+        open.Enqueue(startNode, startNode.TotalCost);
+
+        while (open.TryDequeue(out var current, out var prio))
+        {
+            // skip stale entries
+            if (!current.TotalCost.Equals(prio))
+                continue;
+
+            if (ReferenceEquals(current, goalNode))
+            {
+                var path = PathFindingUtils.RetracePath(goalNode);
+                timeLogger.Print("ALT AStar: FindPath completed", true);
+                return path;
+            }
+
+            closed.Add(current);
+
+            foreach (var neighRef in current.Neighbours)
+            {
+                var neigh = _pathNodes[neighRef.Position];
+                if (closed.Contains(neigh))
+                    continue;
+
+                bool diagonal =
+                    neighRef.Position.x != current.Position.x &&
+                    neighRef.Position.y != current.Position.y;
+                float step = diagonal ? MathF.Sqrt(2) : 1f;
+
+                float tentative = current.CostFromStart + step + neighRef.MovementPenalty;
+                if (tentative < neigh.CostFromStart)
+                {
+                    neigh.CostFromStart = tentative;
+                    neigh.HeuristicCost = HeuristicALT(neighRef.Position, goalPos);
+                    neigh.ParentNode = current;
+                    open.Enqueue(neigh, neigh.TotalCost);
+                }
+            }
+        }
+
+        timeLogger.Print("ALT AStar: FindPath completed (not found)", true);
+        return null;
     }
 }
 
@@ -39,17 +126,12 @@ public class Landmarks : List<Landmark>
         dijNodesList.Sort((a, b) => b.CostFromStart.CompareTo(a.CostFromStart));
         if (dijNodesList.Count == 0) return;
 
-        // spacing radius ~ 0.5 * sqrt(area / k)
         var dims = pathNodes.Dimentions;
         float area = (float)dims.x * dims.y;
         int radius = Math.Max(1, (int)(0.5f * MathF.Sqrt(area / Math.Max(1, landmarkCount))));
-        int radiusSq = radius * radius;
 
-        // fast membership and blocking set to avoid O(k) checks per candidate
         var blocked = new HashSet<Vect2D>();
-        // selection with startPos so it's included and blocked properly
         var selected = new List<Vect2D>(landmarkCount) { startPos };
-        // mark blocked region for the seed landmark
         for (int dx = -radius; dx <= radius; dx++)
         {
             for (int dy = -radius; dy <= radius; dy++)
@@ -66,25 +148,20 @@ public class Landmarks : List<Landmark>
             var pos = node.Position;
             if (blocked.Contains(pos)) continue;
 
-            // select this as new landmark
             selected.Add(pos);
 
-            // mark chebyshev-blocked region around pos (grid friendly)
             for (int dx = -radius; dx <= radius; dx++)
             {
                 for (int dy = -radius; dy <= radius; dy++)
                 {
-                    // use chebyshev limit to match grid "radius"
                     if (Math.Max(Math.Abs(dx), Math.Abs(dy)) > radius) continue;
                     var p = new Vect2D(pos.x + dx, pos.y + dy);
-                    // only mark positions that are within map bounds and exist in pathNodes (optional)
                     if (pathNodes.ContainsKey(p))
                         blocked.Add(p);
                 }
             }
         }
 
-        // if we still need more landmarks, fill from remaining farthest nodes ignoring blocking
         if (selected.Count < landmarkCount)
         {
             foreach (var node in dijNodesList)
@@ -96,7 +173,6 @@ public class Landmarks : List<Landmark>
             }
         }
 
-        // replace this list with selected results
         this.Clear();
         this.AddRange(selected.Select(pos => new Landmark(pos, pathNodes)));
         timeLogger.Print($"ALT Landmark Generation Ended with positions:\n  {this}\n  ", true);
