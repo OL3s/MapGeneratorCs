@@ -1,5 +1,6 @@
 using MapGeneratorCs.Types;
 using MapGeneratorCs.PathFinding.Types;
+using MapGeneratorCs.PathFinding.Utils;
 using MapGeneratorCs.Logging;
 
 namespace MapGeneratorCs.PathFinding.Dijkstra.Utils;
@@ -40,7 +41,11 @@ public static class DijUtils
                 var np = nRef.Position;
                 bool diagonal = np.x != cur.x && np.y != cur.y;
                 float step = diagonal ? MathF.Sqrt(2) : 1f;
-                float tentative = dist[cur] + step + nRef.MovementPenalty;
+                // Include corner penalty when moving diagonally so costs consider adjacent orthogonals
+                float cornerPenalty = diagonal
+                    ? PathFindingUtils.CalculateCornerPenalty(pathNodes, cur, np)
+                    : 0f;
+                float tentative = dist[cur] + step + nRef.MovementPenalty + cornerPenalty;
                 if (tentative < dist[np])
                 {
                     dist[np] = tentative;
@@ -142,8 +147,11 @@ public class DijNodes : PathNodes
                 bool diagonal = neighborRef.Position.x != currentNode.Position.x &&
                                 neighborRef.Position.y != currentNode.Position.y;
                 float stepCost = diagonal ? MathF.Sqrt(2) : 1f;
-
-                float tentativeCost = currentNode.CostFromStart + stepCost + neighborRef.MovementPenalty;
+                // Include corner penalty when moving diagonally so costs consider adjacent orthogonals
+                float cornerPenalty = diagonal
+                    ? PathFindingUtils.CalculateCornerPenalty(this, currentNode.Position, neighborRef.Position)
+                    : 0f;
+                float tentativeCost = currentNode.CostFromStart + stepCost + neighborRef.MovementPenalty + cornerPenalty;
                 if (tentativeCost < neighborNode.CostFromStart)
                 {
                     neighborNode.CostFromStart = tentativeCost;

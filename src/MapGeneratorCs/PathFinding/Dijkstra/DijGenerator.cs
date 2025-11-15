@@ -1,6 +1,7 @@
 ﻿using MapGeneratorCs.Types;
 using MapGeneratorCs.PathFinding.Image;
 using MapGeneratorCs.PathFinding.Types;
+using MapGeneratorCs.PathFinding.Utils;
 using MapGeneratorCs.Logging;
 
 namespace MapGeneratorCs.PathFinding.Dijkstra;
@@ -59,7 +60,11 @@ public class DijGenerator
                 var np = nRef.Position;
                 bool diagonal = np.x != cur.x && np.y != cur.y;
                 float step = diagonal ? MathF.Sqrt(2) : 1f;
-                float tentative = Dist[cur] + step + nRef.MovementPenalty;
+                // Include corner penalty when moving diagonally so costs match "going around" the corners
+                float cornerPenalty = diagonal
+                    ? PathFindingUtils.CalculateCornerPenalty(_graph, cur, np)
+                    : 0f;
+                float tentative = Dist[cur] + step + nRef.MovementPenalty + cornerPenalty;
 
                 if (tentative < Dist[np])
                 {

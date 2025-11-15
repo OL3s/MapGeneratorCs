@@ -89,12 +89,17 @@ public class ALTGenerator
                     neighRef.Position.y != current.Position.y;
                 float step = diagonal ? MathF.Sqrt(2) : 1f;
 
-                float tentative = current.CostFromStart + step + neighRef.MovementPenalty;
+                // NEW: add corner penalty for diagonals
+                float cornerPenalty = diagonal
+                    ? PathFindingUtils.CalculateCornerPenalty(_pathNodes, current.Position, neighRef.Position)
+                    : 0f;
+
+                float tentative = current.CostFromStart + step + neighRef.MovementPenalty + cornerPenalty;
                 if (tentative < neigh.CostFromStart)
                 {
                     neigh.CostFromStart = tentative;
-                    neigh.HeuristicCost = HeuristicALT(neighRef.Position, goalPos);
                     neigh.ParentNode = current;
+                    neigh.HeuristicCost = HeuristicALT(neighRef.Position, goalNode.Position);
                     open.Enqueue(neigh, neigh.TotalCost);
                 }
             }

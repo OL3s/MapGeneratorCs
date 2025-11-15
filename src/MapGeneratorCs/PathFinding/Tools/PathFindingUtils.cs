@@ -73,6 +73,23 @@ public static class PathFindingUtils
         return neighbours;
     }
 
+    // Extra cost when moving diagonally: sum of penalties of the two corner-adjacent tiles.
+    public static float CalculateCornerPenalty(PathNodes nodes, Vect2D from, Vect2D to)
+    {
+        // Only applies to diagonal moves
+        if (from.x == to.x || from.y == to.y)
+            return 0f;
+
+        var a = new Vect2D(to.x, from.y); // horizontal corner
+        var b = new Vect2D(from.x, to.y); // vertical corner
+
+        // Neighbours are created only if both exist, but be safe
+        if (!nodes.TryGetValue(a, out var aNode) || !nodes.TryGetValue(b, out var bNode))
+            return 0f;
+
+        return aNode.MovementPenalty + bNode.MovementPenalty;
+    }
+
     public static void ResetNodeCosts(PathNodes pathNodes)
     {
         foreach (var node in pathNodes.Values)

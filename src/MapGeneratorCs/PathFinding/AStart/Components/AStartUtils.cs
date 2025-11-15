@@ -58,7 +58,13 @@ public static class AStarUtils
 
                 bool diagonal = np.x != currentPos.x && np.y != currentPos.y;
                 float stepCost = diagonal ? MathF.Sqrt(2) : 1f;
-                float tentative = g[currentPos] + stepCost + neighbour.MovementPenalty;
+
+                // NEW: add corner penalty for diagonals (sum of the two corner tiles' penalties)
+                float cornerPenalty = diagonal
+                    ? PathFindingUtils.CalculateCornerPenalty(pathNodes, currentPos, np)
+                    : 0f;
+
+                float tentative = g[currentPos] + stepCost + neighbour.MovementPenalty + cornerPenalty;
 
                 if (tentative < g[np])
                 {
