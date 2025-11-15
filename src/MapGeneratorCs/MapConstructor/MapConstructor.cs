@@ -3,6 +3,7 @@ using MapGeneratorCs.Types;
 using MapGeneratorCs.Generator.Types;
 using MapGeneratorCs.Generator.Utils.Builders;
 using MapGeneratorCs.PathFinding.Types;
+using MapGeneratorCs.Image;
 namespace MapGeneratorCs;
 
 public class MapConstructor
@@ -62,20 +63,13 @@ public class MapConstructor
     {
         ConfigLoader.InitConfigFiles(overwriteExisting: true);
     }
-    public void SaveMapAsImage(string filePath = "export/map_output.png")
+    public void SaveMapAsImage(string filePath = "export/", string filename = "map_output.png")
     {
-        var grid = IntMapBuilder.CreateGridFromMap(this);
-        IntMapBuilder.SaveGridToImage(grid, filePath, includeGenerateNodes: false);
+        Imagify.SaveMapToImage(this, filename, filePath, includeGenerateNodes: false);
     }
     public void SaveMapAsJson(string filePath = "export/map_output.json")
     {
         JsonMapBuilder.SaveMapAsJson(this, filePath);
-    }
-    public void SaveAll() 
-    {
-        var grid = IntMapBuilder.CreateGridFromMap(this);
-        IntMapBuilder.SaveGridToImage(grid, "export/map_output.png", includeGenerateNodes: false);
-        JsonMapBuilder.SaveMapAsJson(this, "export/map_output.json");
     }
     public void LoadMapFromJson(string filePath = "export/map_output.json")
     {

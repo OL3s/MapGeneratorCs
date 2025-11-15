@@ -4,10 +4,11 @@ using MapGeneratorCs.PathFinding.AStar;
 using MapGeneratorCs.PathFinding.Dijkstra.Utils;
 using MapGeneratorCs.PathFinding.Utils;
 using MapGeneratorCs.PathFinding.Dijkstra;
-using MapGeneratorCs.PathFinding.Image;
+using MapGeneratorCs.Image;
 using MapGeneratorCs.PathFinding.ALT;
 using MapGeneratorCs.Generator.Types;
 using MapGeneratorCs.Logging;
+using MapGeneratorCs.ExportKit;
 
 internal class Program
 {
@@ -23,6 +24,7 @@ internal class Program
             );
         else
             map = new MapConstructor();
+
         map.GenerateMap();
         map.GeneratePathNodes();
         map.SaveMapAsImage();
@@ -51,27 +53,25 @@ internal class Program
             goalPos
         );
 
-        // pathfinding precomputed Dij
-        var dijGenerator = new DijGenerator(map.PathNodes, startPos);
-        var dijPrecompPath = dijGenerator.FindPath(goalPos);
-
         // ALT generator
         var altGenerator = new ALTGenerator(startPos, landmarkCount: 5, map.PathNodes);
         var altPath = altGenerator.FindPath(startPos, goalPos);
         altGenerator.SaveLandmarkPositionAsImage();
 
         aStar.SavePathAndMapToImage(pathToGoal);
-        dijGenerator.SavePathToImage(dijPrecompPath);
 
         // draw precomputed dist map
-        PathImagify.SavePathValuesToImage(map.PathNodes, dijGenerator.Dist, "dijkstra_cost_output.png");
-        PathImagify.SavePathToImage(map.PathNodes, dijPath, "dijkstra_path_output.png");
+        Imagify.SavePathToImage(map.PathNodes, dijPath, "dijkstra_path_output.png");
 
         int i = 0;
         foreach (var landmark in altGenerator.Landmarks)
         {
-            PathImagify.SavePathValuesToImage(map.PathNodes, landmark.Dist, $"alt_landmark_{i+1}_cost_output.png");
+            Imagify.SavePathValuesToImage(map.PathNodes, landmark.Dist, $"alt_landmark_{i+1}_cost_output.png");
             i++;
         }
+
+        // Export tilesset background
+        var exportedBackground = ExportKit.GenerateDefaultBackground(map.NodeContainer);
+        Imagify.SaveExportedBackgroundToImage(exportedBackground, "tilesset_background_output.png");
     }
 }

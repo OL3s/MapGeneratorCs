@@ -2,10 +2,8 @@
 using MapGeneratorCs.PathFinding.Types;
 using MapGeneratorCs.PathFinding.Dijkstra;
 using MapGeneratorCs.PathFinding.Utils;
-using MapGeneratorCs.Generator.Types;
 using MapGeneratorCs.Logging;
-using MapGeneratorCs.PathFinding.Dijkstra.Utils;
-using MapGeneratorCs.PathFinding.Image;
+using MapGeneratorCs.Image;
 
 namespace MapGeneratorCs.PathFinding.ALT;
 
@@ -111,7 +109,7 @@ public class ALTGenerator
 
     public void SaveLandmarkPositionAsImage() 
     {
-        PathImagify.SavePointOfInterestToImage(
+        Imagify.SavePointOfInterestToImage(
             _pathNodes,
             Landmarks.GetPositions(),
             "ALT_Landmarks.png",

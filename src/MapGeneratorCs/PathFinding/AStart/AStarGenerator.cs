@@ -1,7 +1,7 @@
 using MapGeneratorCs.Types;
 using MapGeneratorCs.PathFinding.AStar.Utils;
 using MapGeneratorCs.PathFinding.Types;
-using MapGeneratorCs.PathFinding.Image;
+using MapGeneratorCs.Image;
 using MapGeneratorCs.Logging;
 
 namespace MapGeneratorCs.PathFinding.AStar;
@@ -21,7 +21,7 @@ public class AStarGenerator
 
     public void SavePathAndMapToImage(List<Vect2D> path)
     {
-        PathImagify.SavePathToImage(PathNodes, path, "a_star_path_output.png");
+        Imagify.SavePathToImage(PathNodes, path, "a_star_path_output.png");
     }
     
 }

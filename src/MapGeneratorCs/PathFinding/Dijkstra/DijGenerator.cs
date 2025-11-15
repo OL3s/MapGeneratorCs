@@ -1,5 +1,5 @@
 ﻿using MapGeneratorCs.Types;
-using MapGeneratorCs.PathFinding.Image;
+using MapGeneratorCs.Image;
 using MapGeneratorCs.PathFinding.Types;
 using MapGeneratorCs.PathFinding.Utils;
 using MapGeneratorCs.Logging;
@@ -102,6 +102,6 @@ public class DijGenerator
 
     public void SavePathToImage(List<Vect2D> path)
     {
-        PathImagify.SavePathToImage(_graph, path, "dij_precomp_output.png");
+        Imagify.SavePathToImage(_graph, path, "dij_precomp_output.png");
     }
 }
