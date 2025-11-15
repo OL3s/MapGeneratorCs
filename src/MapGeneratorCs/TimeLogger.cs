@@ -9,7 +9,6 @@ public class TimeLogger
         StartTime = DateTime.Now;
     }
 
-
     public void Print(string message, bool printTime = true)
     {
         if (includePrintLog == false)

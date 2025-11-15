@@ -9,7 +9,7 @@ public static class ObjectBuilder
     {
         Console.WriteLine("ObjectBuilder: Converting Generate Nodes to Object Nodes...");
         Dictionary<int, GenerateObjectWeights> config = ConfigLoader.LoadObjectWeights();
-        (int i, int p) count = (0, 0);
+        int count = 0;
 
         foreach (var kvp in map.NodeContainer.NodesGenerate)
         {
@@ -61,11 +61,10 @@ public static class ObjectBuilder
                     break;
             }
 
-            count.i++;
-            if (count.i % 100_000 == 0)
+            count++;
+            if (count % 100_000 == 0)
             {
-                count.p++;
-                Console.WriteLine($"ObjectBuilder: processed {count.p} hundred-thousand generate nodes...");
+                Console.WriteLine($"ObjectBuilder: processed {count / 100_000} hundred-thousand generate nodes...");
             }
         }
     }

@@ -104,4 +104,52 @@ public class PathImagify
         image.Save(filePath + filename, new PngEncoder());
         Console.WriteLine($"Path values image saved to {filePath + filename}");
     }
+
+    public static void SavePointOfInterestToImage(PathNodes pathNodes, List<Vect2D> pointPositions, string filename, string filePath = "export/", int radius = 3)
+    {
+        // add .png tag if missing
+        if (!filename.EndsWith(".png"))
+            filename += ".png";
+
+        (int maxX, int maxY) = (0, 0);
+        foreach (var kvp in pathNodes)
+        {
+            var pos = kvp.Key;
+            if (pos.x > maxX) maxX = pos.x;
+            if (pos.y > maxY) maxY = pos.y;
+        }
+
+        int width = maxX + 1;
+        int height = maxY + 1;
+        using var image = new Image<Rgba32>(width, height);
+        foreach (var kvp in pathNodes)
+        {
+            var pos = kvp.Key;
+
+            // base floor
+            image[pos.x, pos.y] = new Rgba32(50, 50, 50); // Floor dark gray
+        }
+
+        // mark POI positions
+        foreach (var point in pointPositions)
+        {  
+
+            // Draw a filled square (cube in 2D) of given radius around the POI
+            for (int dx = -radius; dx <= radius; dx++)
+            {
+                for (int dy = -radius; dy <= radius; dy++)
+                {
+                    int x = point.x + dx;
+                    int y = point.y + dy;
+                    if (x >= 0 && x < image.Width && y >= 0 && y < image.Height)
+                    {
+                        image[x, y] = new Rgba32(255, 0, 255); // Magenta for POI area
+                    }
+                }
+            }
+        }
+
+        image.Save(filePath + filename, new PngEncoder());
+        Console.WriteLine($"POI image saved to {filePath + filename}");
+    }
 }

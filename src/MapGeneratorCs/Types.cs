@@ -8,7 +8,10 @@ public readonly struct Vect2D : IEquatable<Vect2D>
         this.x = x;
         this.y = y;
     }
-
+    public float DistanceTo(Vect2D other)
+    {
+        return (float)Math.Sqrt((x - other.x) * (x - other.x) + (y - other.y) * (y - other.y));
+    }
     public bool Equals(Vect2D other) => x == other.x && y == other.y;
     public override bool Equals(object? obj) => obj is Vect2D other && Equals(other);
     public override int GetHashCode() => System.HashCode.Combine(x, y);

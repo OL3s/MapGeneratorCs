@@ -2,6 +2,7 @@ using MapGeneratorCs.Types;
 using MapGeneratorCs.PathFinding.AStar.Utils;
 using MapGeneratorCs.PathFinding.Types;
 using MapGeneratorCs.PathFinding.Image;
+using MapGeneratorCs.Logging;
 
 namespace MapGeneratorCs.PathFinding.AStar;
 
@@ -10,7 +11,7 @@ public class AStarGenerator
     public PathNodes PathNodes { get; private set; }
     public AStarGenerator(PathNodes pathNodes)
     {
-        PathNodes = pathNodes.Clone();
+        PathNodes = pathNodes;
     }
     public List<Vect2D>? FindPath(Vect2D startPos, Vect2D goalPos)
     {

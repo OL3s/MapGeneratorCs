@@ -75,7 +75,6 @@ public static class PathFindingUtils
 
     public static void ResetNodeCosts(PathNodes pathNodes)
     {
-        Console.WriteLine("PathFindingUtils: Resetting node costs...");
         foreach (var node in pathNodes.Values)
         {
             node.CostFromStart = float.MaxValue;

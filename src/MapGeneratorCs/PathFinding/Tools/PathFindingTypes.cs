@@ -1,6 +1,7 @@
 using MapGeneratorCs.Types;
 using MapGeneratorCs.PathFinding.Utils;
 using MapGeneratorCs.Generator.Types;
+using MapGeneratorCs.Logging;
 
 namespace MapGeneratorCs.PathFinding.Types;
 
@@ -23,8 +24,20 @@ public class PathNodes : Dictionary<Vect2D, PathNode>
 {
     public PathNodes() : base( ) { }
     public PathNodes(IDictionary<Vect2D, PathNode> pathNodes) : base(pathNodes) { }
+    public Vect2D Dimentions
+    {
+        get
+        {
+            var maxX = this.Keys.Max(position => position.x);
+            var maxY = this.Keys.Max(position => position.y);
+            return new Vect2D(maxX + 1, maxY + 1);
+        }
+    }
     public void Generate(NodeContainerData container)
     {
+        var timeLogger = new TimeLogger();
+        timeLogger.Print("PathNodes.Generate starting", false);
+        this.Clear();
 
         // Create new path nodes from the container
         foreach (var position in container.NodesFloor)
@@ -45,19 +58,27 @@ public class PathNodes : Dictionary<Vect2D, PathNode>
         {
             pair.Value.Neighbours = PathFindingUtils.GetNeighbours(pair.Key, this);
         }
+        timeLogger.Print("PathNodes.Generate completed", true);
     }
 
     public void ResetNodeCosts()
     {
+        var timeLogger = new TimeLogger();
+        timeLogger.Print("PathNodes.ResetNodeCosts starting", false);
         foreach (var node in Values)
         {
             node.CostFromStart = float.MaxValue;
             node.HeuristicCost = float.MaxValue;
             node.ParentNode = null;
         }
+        timeLogger.Print("PathNodes.ResetNodeCosts completed", true);
     }
+
+    //
     public PathNodes Clone()
     {
+        var timeLogger = new TimeLogger();
+        timeLogger.Print("PathNodes.Clone starting", false);
         var newDict = new PathNodes();
 
         // nodes
@@ -69,8 +90,8 @@ public class PathNodes : Dictionary<Vect2D, PathNode>
                 Position = src.Position,
                 NodeType = src.NodeType,
                 MovementPenalty = src.MovementPenalty,
-                CostFromStart = src.CostFromStart,
-                HeuristicCost = src.HeuristicCost,
+                CostFromStart = float.MaxValue, // reset
+                HeuristicCost = float.MaxValue, // reset
                 ParentNode = null,
                 Neighbours = new HashSet<PathNode>() // filled below
             };
@@ -89,7 +110,7 @@ public class PathNodes : Dictionary<Vect2D, PathNode>
             }
             newNode.Neighbours = mapped;
         }
-
+        timeLogger.Print("PathNodes.Clone completed", true);
         return newDict;
     }
 }

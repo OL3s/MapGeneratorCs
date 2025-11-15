@@ -1,8 +1,7 @@
 using MapGeneratorCs.Types;
 using MapGeneratorCs.PathFinding.Types;
-using MapGeneratorCs.Logging;
 using MapGeneratorCs.PathFinding.Utils;
-using System.Transactions;
+using MapGeneratorCs.Logging;
 
 namespace MapGeneratorCs.PathFinding.AStar.Utils;
     
@@ -10,7 +9,8 @@ public static class AStarUtils
 {
     public static List<Vect2D>? FindPath(PathNodes pathNodes, Vect2D start, Vect2D goal)
     {
-        Console.WriteLine("AStarUtils: Starting A* pathfinding...");
+        var timeLogger = new TimeLogger();
+        timeLogger.Print("AStarUtils.FindPath starting", false);
         if (!pathNodes.ContainsKey(start) || !pathNodes.ContainsKey(goal))
             return null;
 
@@ -35,7 +35,7 @@ public static class AStarUtils
             if (ReferenceEquals(current, goalNode))
             {
                 var path = PathFindingUtils.RetracePath(goalNode);
-                PathFindingUtils.ResetNodeCosts(pathNodes);
+                timeLogger.Print("AStarUtils.FindPath completed", true);
                 return path;
             }
 
@@ -69,8 +69,7 @@ public static class AStarUtils
             }
         }
 
-        PathFindingUtils.ResetNodeCosts(pathNodes);
-        Console.WriteLine("AStarUtils: No path found from start to goal.");
+        timeLogger.Print("AStarUtils.FindPath completed (not found)", true);
         return null;
     }
 
