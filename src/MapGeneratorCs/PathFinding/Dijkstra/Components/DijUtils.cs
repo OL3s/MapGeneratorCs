@@ -9,8 +9,7 @@ public static class DijUtils
     // Creates a raw Dijkstra path from start to end using the computed Dij path map
    public static List<Vect2D>? CreateDijPathFromPathNodes(PathNodes pathNodes, Vect2D start, Vect2D end)
     {
-        var timeLogger = new TimeLogger();
-        timeLogger.Print("DijUtils: Starting Dij single-target pathfinding...", false);
+        Console.WriteLine("DijUtils: Starting Dij single-target pathfinding...");
         var _pathNodes = pathNodes.Clone();
 
         if (_pathNodes.Count == 0 || _pathNodes == null)
@@ -42,10 +41,8 @@ public static class DijUtils
 
             // If we've reached the target, build and return path immediately
             if (currentPos2.Equals(end))
-            {
-                timeLogger.Print("DijUtils: Reached target during Dij single-target pathfinding");
                 return FindDijPathFromDijNodes(dijDict, end);
-            }
+
 
             foreach (var neighborRef in currentNode.Neighbours)
             {
@@ -64,8 +61,7 @@ public static class DijUtils
                 }
             }
         }
-
-        timeLogger.Print("DijUtils: Finished Dij single-target pathfinding, no path found");
+        Console.WriteLine("DijUtils: No path found from start to end.");
         return null;
     }
 
@@ -103,8 +99,7 @@ public class DijNodes : PathNodes
     }
     public void InitFullMap()
     {
-        var timeLogger = new TimeLogger();
-        timeLogger.Print("DjiNodes: Starting full Dij path map computation...", false);
+        Console.WriteLine("DijNodes: Initializing full map Dijkstra computation...");
         PathFindingUtils.ResetNodeCosts(this);
 
         // Return if start node not in pathNodes dictionary
@@ -132,7 +127,7 @@ public class DijNodes : PathNodes
 
             processed++;
             if (processed % 1_000_000 == 0)
-                timeLogger.Print($"DjiNodes: Processed {processed / 1_000_000}/{estimatedTotal / 1_000_000} million nodes...", false);
+                Console.WriteLine($"DjiNodes: Processed {processed / 1_000_000}/{estimatedTotal / 1_000_000} million nodes...");
 
             // For each neighbor, update tentative cost
             foreach (var neighborRef in currentNode.Neighbours)
@@ -153,7 +148,6 @@ public class DijNodes : PathNodes
                 }
             }
         }
-        timeLogger.Print("DjiNodes: Finished full Dij path map computation");
     }
 
     public List<Vect2D>? FindPathTo(Vect2D goalPos)

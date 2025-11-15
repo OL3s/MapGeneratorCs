@@ -1,9 +1,7 @@
 using MapGeneratorCs.Types;
-using MapGeneratorCs.Generator.Types;
 using MapGeneratorCs.PathFinding.AStar.Utils;
 using MapGeneratorCs.PathFinding.Types;
 using MapGeneratorCs.PathFinding.Image;
-using MapGeneratorCs.PathFinding.Utils;
 
 namespace MapGeneratorCs.PathFinding.AStar;
 

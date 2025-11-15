@@ -10,13 +10,11 @@ public static class AStarUtils
 {
     public static List<Vect2D>? FindPath(PathNodes pathNodes, Vect2D start, Vect2D goal)
     {
-        var timeLogger = new TimeLogger();
+        Console.WriteLine("AStarUtils: Starting A* pathfinding...");
         if (!pathNodes.ContainsKey(start) || !pathNodes.ContainsKey(goal))
             return null;
 
         pathNodes.ResetNodeCosts();
-        timeLogger.Print("AStarUtils: Starting pathfinding...", false);
-
         var closedSet = new HashSet<PathNode>();
         var openPq = new PriorityQueue<PathNode, float>();
 
@@ -36,7 +34,6 @@ public static class AStarUtils
 
             if (ReferenceEquals(current, goalNode))
             {
-                timeLogger.Print("AStarUtils: Finished pathfinding");
                 var path = PathFindingUtils.RetracePath(goalNode);
                 PathFindingUtils.ResetNodeCosts(pathNodes);
                 return path;
@@ -72,8 +69,8 @@ public static class AStarUtils
             }
         }
 
-        timeLogger.Print("AStarUtils: No path found");
         PathFindingUtils.ResetNodeCosts(pathNodes);
+        Console.WriteLine("AStarUtils: No path found from start to goal.");
         return null;
     }
 

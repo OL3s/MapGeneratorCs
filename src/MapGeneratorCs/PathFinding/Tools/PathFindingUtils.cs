@@ -75,15 +75,13 @@ public static class PathFindingUtils
 
     public static void ResetNodeCosts(PathNodes pathNodes)
     {
-        var timeLogger = new TimeLogger();
-        timeLogger.Print("PathFindingUtils: Resetting node costs", false);
+        Console.WriteLine("PathFindingUtils: Resetting node costs...");
         foreach (var node in pathNodes.Values)
         {
             node.CostFromStart = float.MaxValue;
             node.HeuristicCost = float.MaxValue;
             node.ParentNode = null;
         }
-        timeLogger.Print("PathFindingUtils: Finished resetting node costs");
     }
 
     public static float CalculateHeuristic(Vect2D a, Vect2D b)
@@ -110,9 +108,8 @@ public static class PathFindingUtils
         NodeContainerData container)
     {
         var nodes = new PathNodes();
-        var timeLogger = new TimeLogger();
 
-        timeLogger.Print("PathFindingUtils: Creating path node generation", false);
+        Console.WriteLine("PathFindingUtils: Creating path node generation...");
         foreach (var position in container.NodesFloor)
         {
             var type = container.NodesObjects.ContainsKey(position)
@@ -126,14 +123,11 @@ public static class PathFindingUtils
             });
         }
 
-        timeLogger.Print("PathFindingUtils: Finished path node generation");
-        timeLogger.Print("PathFindingUtils: Assigning neighbours", false);
         foreach (var pair in nodes)
         {
             pair.Value.Neighbours = GetNeighbours(pair.Key, nodes);
         }
 
-        timeLogger.Print("PathFindingUtils: Finished assigning node neighbours");
         return nodes;
     }
 }
