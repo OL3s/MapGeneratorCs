@@ -8,15 +8,13 @@ namespace MapGeneratorCs.PathFinding.AStar.Utils;
     
 public static class AStarUtils
 {
-    public static List<Vect2D>? FindPath(PathNodes pathNodes, Vect2D start, Vect2D goal, bool resetNodeCosts)
+    public static List<Vect2D>? FindPath(PathNodes pathNodes, Vect2D start, Vect2D goal)
     {
         var timeLogger = new TimeLogger();
         if (!pathNodes.ContainsKey(start) || !pathNodes.ContainsKey(goal))
             return null;
 
-        if (resetNodeCosts)
-            PathFindingUtils.ResetNodeCosts(pathNodes);
-
+        pathNodes.ResetNodeCosts();
         timeLogger.Print("AStarUtils: Starting pathfinding...", false);
 
         var closedSet = new HashSet<PathNode>();

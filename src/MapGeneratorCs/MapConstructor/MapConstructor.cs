@@ -2,6 +2,7 @@
 using MapGeneratorCs.Types;
 using MapGeneratorCs.Generator.Types;
 using MapGeneratorCs.Generator.Utils.Builders;
+using MapGeneratorCs.PathFinding.Types;
 namespace MapGeneratorCs;
 
 public class MapConstructor
@@ -11,7 +12,7 @@ public class MapConstructor
     public MapConfig mapConfig;
     internal int padding = 1;
     public NodeContainerData NodeContainer { get; set; } = new NodeContainerData();
-
+    public PathNodes? PathNodes { get; set; }
     public MapConstructor(bool overwriteExisting = false, SpawnWeights? spawnWeights = null, MapConfig? mapConfig = null)
     {
         ConfigLoader.InitConfigFiles(overwriteExisting: overwriteExisting, spawnWeights: spawnWeights, mapConfig: mapConfig);
@@ -25,7 +26,6 @@ public class MapConstructor
         LoadMapFromJson(jsonFileLoadPath);
         random = new Random();
     }
-
     public void GenerateMap()
     {
         // Start details
@@ -49,7 +49,12 @@ public class MapConstructor
             + $"Generation time       {stopwatch.ElapsedMilliseconds,6} .ms\n"
             + $""
             );
+    }
 
+    public void GeneratePathNodes()
+    {
+        PathNodes = new PathNodes();
+        PathNodes.Generate(this.NodeContainer);
     }
 
 

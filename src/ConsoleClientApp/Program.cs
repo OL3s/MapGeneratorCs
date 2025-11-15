@@ -12,6 +12,7 @@ internal class Program
     {
         var map = new MapConstructor();
         map.GenerateMap();
+        map.GeneratePathNodes();
         map.SaveMapAsImage();
 
         // Find closest object nodes of a specific type
@@ -23,7 +24,7 @@ internal class Program
         );
 
         // pathfinding A*
-        var aStar = new AStarGenerator(map.NodeContainer);
+        var aStar = new AStarGenerator(map.PathNodes);
         var startPos = map.StartPosition;
         var goalPos = map.EndPosition;
         var pathToGoal = aStar.FindPath(
@@ -31,6 +32,21 @@ internal class Program
             goalPos
         );
 
-        aStar.SavePathAndMapToImage(map, pathToGoal);
+        // pathfinding Dijkstra Raw
+        var dijPath = DijUtils.CreateDijPathFromPathNodes(
+            map.PathNodes,
+            startPos,
+            goalPos
+        );
+
+        // pathfinding precomputed Dij
+        var dijGenerator = new DijGenerator(map.PathNodes, startPos);
+        dijGenerator.DijNodes.InitFullMap();
+        var dijPrecompPath = dijGenerator.FindPath(goalPos);
+
+        aStar.SavePathAndMapToImage(pathToGoal);
+        dijGenerator.SavePathToImage(dijPrecompPath);
+        PathImagify.SavePathValuesToImage(dijGenerator.DijNodes, "dijkstra_cost_output.png");
+        PathImagify.SavePathToImage(map.PathNodes, dijPath, "dijkstra_path_output.png");
     }
 }

@@ -10,22 +10,19 @@ namespace MapGeneratorCs.PathFinding.AStar;
 public class AStarGenerator
 {
     public PathNodes PathNodes { get; private set; }
-    private bool isCalculated = false;
-    public AStarGenerator(NodeContainerData container)
+    public AStarGenerator(PathNodes pathNodes)
     {
-        PathNodes = PathFindingUtils.CreatePathNodesFromMap(container);
+        PathNodes = pathNodes.Clone();
     }
-
     public List<Vect2D>? FindPath(Vect2D startPos, Vect2D goalPos)
     {
-        var Return = AStarUtils.FindPath(PathNodes, startPos, goalPos, isCalculated);
-        isCalculated = true;
+        var Return = AStarUtils.FindPath(PathNodes, startPos, goalPos);
         return Return;
     }
 
-    public void SavePathAndMapToImage(MapConstructor map, List<Vect2D> path)
+    public void SavePathAndMapToImage(List<Vect2D> path)
     {
-        PathImagify.SavePathAndMapToImage(map, path, "a_star_path_output.png");
+        PathImagify.SavePathToImage(PathNodes, path, "a_star_path_output.png");
     }
     
 }

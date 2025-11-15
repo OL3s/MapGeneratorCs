@@ -1,6 +1,7 @@
-using System.Runtime.CompilerServices;
 using MapGeneratorCs.Types;
 using MapGeneratorCs.PathFinding.Utils;
+using MapGeneratorCs.Generator.Types;
+
 namespace MapGeneratorCs.PathFinding.Types;
 
 public class PathNode
@@ -22,28 +23,73 @@ public class PathNodes : Dictionary<Vect2D, PathNode>
 {
     public PathNodes() : base( ) { }
     public PathNodes(IDictionary<Vect2D, PathNode> pathNodes) : base(pathNodes) { }
-}
-
-public sealed class PathNodeComparer : IComparer<PathNode>
-{
-    public int Compare(PathNode? a, PathNode? b)
+    public void Generate(NodeContainerData container)
     {
-        if (ReferenceEquals(a, b)) return 0;
-        if (a is null) return -1;
-        if (b is null) return 1;
 
-        int compare = a.TotalCost.CompareTo(b.TotalCost);
-        if (compare != 0) return compare;
+        // Create new path nodes from the container
+        foreach (var position in container.NodesFloor)
+        {
+            var type = container.NodesObjects.ContainsKey(position)
+                ? container.NodesObjects[position]
+                : TileSpawnType.Default;
+            this.Add(position, new PathNode
+            {
+                Position = position,
+                NodeType = type,
+                MovementPenalty = PathFindingUtils.GetNodeMovementPenalty(type)
+            });
+        }
 
-        compare = a.HeuristicCost.CompareTo(b.HeuristicCost);
-        if (compare != 0) return compare;
+        // Assign neighbours
+        foreach (var pair in this)
+        {
+            pair.Value.Neighbours = PathFindingUtils.GetNeighbours(pair.Key, this);
+        }
+    }
 
-        compare = a.Position.x.CompareTo(b.Position.x);
-        if (compare != 0) return compare;
+    public void ResetNodeCosts()
+    {
+        foreach (var node in Values)
+        {
+            node.CostFromStart = float.MaxValue;
+            node.HeuristicCost = float.MaxValue;
+            node.ParentNode = null;
+        }
+    }
+    public PathNodes Clone()
+    {
+        var newDict = new PathNodes();
 
-        compare = a.Position.y.CompareTo(b.Position.y);
-        if (compare != 0) return compare;
+        // nodes
+        foreach (var kvp in this)
+        {
+            var src = kvp.Value;
+            var clone = new PathNode
+            {
+                Position = src.Position,
+                NodeType = src.NodeType,
+                MovementPenalty = src.MovementPenalty,
+                CostFromStart = src.CostFromStart,
+                HeuristicCost = src.HeuristicCost,
+                ParentNode = null,
+                Neighbours = new HashSet<PathNode>() // filled below
+            };
+            newDict[kvp.Key] = clone;
+        }
 
-        return RuntimeHelpers.GetHashCode(a).CompareTo(RuntimeHelpers.GetHashCode(b));
+        // neighbours
+        foreach (var kvp in this)
+        {
+            var newNode = newDict[kvp.Key];
+            var mapped = new HashSet<PathNode>();
+            foreach (var neigh in kvp.Value.Neighbours)
+            {
+                if (newDict.TryGetValue(neigh.Position, out var mappedNeigh))
+                    mapped.Add(mappedNeigh);
+            }
+            newNode.Neighbours = mapped;
+        }
+
+        return newDict;
     }
 }
