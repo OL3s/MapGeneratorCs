@@ -58,6 +58,7 @@ internal class Program
         // ALT generator
         var altGenerator = new ALTGenerator(startPos, landmarkCount: 5, map.PathNodes);
         var altPath = altGenerator.FindPath(startPos, goalPos);
+        altGenerator.SaveLandmarkPositionAsImage();
 
         aStar.SavePathAndMapToImage(pathToGoal);
         dijGenerator.SavePathToImage(dijPrecompPath);

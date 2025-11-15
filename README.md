@@ -16,9 +16,9 @@ Generate & export:
 ```csharp
 var ctor = new MapGeneratorCs.MapConstructor();
 ctor.GenerateMap();
-ctor.GeneratePathNodes();                    // builds graph
-ctor.SaveMapAsImage();
-ctor.SaveMapAsJson();
+ctor.GeneratePathNodes();                    // builds pathfinding if needed in game
+ctor.SaveMapAsImage();                       // Visual reprecentation of output
+ctor.SaveMapAsJson();                        // For saving map for later use
 ```
 
 Load existing:
@@ -60,7 +60,7 @@ MapGeneratorCs.PathFinding.Image.PathImagify.SavePointOfInterestToImage(
 
 All reuse immutable neighbor sets created in: [`PathFindingUtils.GetNeighbours`](src/MapGeneratorCs/PathFinding/Tools/PathFindingUtils.cs)
 
-## Performance notes
+## Performance notes (v0.4)
 
 - Graph cloning removed (except implicit distance captures inside landmarks).
 - Precompute Dijkstra once if many queries from same start.

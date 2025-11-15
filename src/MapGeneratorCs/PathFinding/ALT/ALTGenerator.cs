@@ -5,6 +5,7 @@ using MapGeneratorCs.PathFinding.Utils;
 using MapGeneratorCs.Generator.Types;
 using MapGeneratorCs.Logging;
 using MapGeneratorCs.PathFinding.Dijkstra.Utils;
+using MapGeneratorCs.PathFinding.Image;
 
 namespace MapGeneratorCs.PathFinding.ALT;
 
@@ -101,6 +102,17 @@ public class ALTGenerator
 
         timeLogger.Print("ALT AStar: FindPath completed (not found)", true);
         return null;
+    }
+
+    public void SaveLandmarkPositionAsImage() 
+    {
+        PathImagify.SavePointOfInterestToImage(
+            _pathNodes,
+            Landmarks.GetPositions(),
+            "ALT_Landmarks.png",
+            "export/",
+            radius: 4
+        );
     }
 }
 
