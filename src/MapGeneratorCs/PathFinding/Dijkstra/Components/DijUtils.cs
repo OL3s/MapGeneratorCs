@@ -7,7 +7,7 @@ namespace MapGeneratorCs.PathFinding.Dijkstra.Utils;
 public static class DijUtils
 {
     // Creates a raw Dijkstra path not using precomputation
-    public static List<Vect2D>? CreateDijPathFromPathNodes(PathNodes pathNodes, Vect2D start, Vect2D end)
+    public static PathResult? CreateDijPathFromPathNodes(PathNodes pathNodes, Vect2D start, Vect2D end)
     {
         var timeLogger = new TimeLogger();
         timeLogger.Print("DijUtils.CreateDijPathFromPathNodes starting", false);
@@ -16,10 +16,12 @@ public static class DijUtils
             throw new ArgumentException("Path nodes dictionary is empty.");
         if (!pathNodes.ContainsKey(start) || !pathNodes.ContainsKey(end))
             throw new ArgumentException("Start or end position not found in path nodes.");
+
+        // Quick check for start == end
         if (start.Equals(end))
         {
             timeLogger.Print("DijUtils.CreateDijPathFromPathNodes completed", true);
-            return new List<Vect2D> { start };
+            return new PathResult(new List<Vect2D> { start }, 0f);
         }
 
         var dist = new Dictionary<Vect2D, float>(pathNodes.Count);
@@ -67,11 +69,11 @@ public static class DijUtils
         }
         path.Reverse();
         timeLogger.Print("DijUtils.CreateDijPathFromPathNodes completed", true);
-        return path;
+        return new PathResult(path, dist[end]);
     }
 
     // Legacy helper kept for compatibility with DijNodes callers
-    public static List<Vect2D>? FindDijPathFromDijNodes(DijNodes dijNodes, Vect2D end)
+    public static PathResult? FindDijPathFromDijNodes(DijNodes dijNodes, Vect2D end)
     {
         if (!dijNodes.ContainsKey(end))
             return null;
@@ -86,7 +88,7 @@ public static class DijUtils
             currentNode = currentNode.ParentNode;
         }
         path.Reverse();
-        return path;
+        return new PathResult(path, dijNodes.GetCostAt(end));
     }
 }
 

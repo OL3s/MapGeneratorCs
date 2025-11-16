@@ -114,3 +114,13 @@ public class PathNodes : Dictionary<Vect2D, PathNode>
         return newDict;
     }
 }
+
+public class PathResult : List<Vect2D>
+{
+    public float Cost { get; init; }
+
+    public PathResult(List<Vect2D> path, float cost) : base(path)
+    {
+        Cost = cost;
+    }
+}

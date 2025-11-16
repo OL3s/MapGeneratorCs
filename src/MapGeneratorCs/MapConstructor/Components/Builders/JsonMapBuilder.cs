@@ -10,14 +10,14 @@ public static class JsonMapBuilder
         var options = new JsonSerializerOptions { WriteIndented = true };
         options.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
 
-        // Convert Dictionary<Vect2D, TileSpawnType> to Dictionary<string, TileSpawnType> for serialization
-        // And HashSet<Vect2D> to List<string>
         var serializableNodeContainer = new serializableNodeContainer
         {
             NodesFloor = new List<string>(),
             NodesFloorRaw = new List<string>(),
             NodesGenerate = new Dictionary<string, TileSpawnType>(),
-            NodesObjects = new Dictionary<string, TileSpawnType>()
+            NodesObjects = new Dictionary<string, TileSpawnType>(),
+            // NEW: also persist flags
+            NodesFlags = new Dictionary<string, TileSpawnType>()
         };
 
         // convert vect2d to string
@@ -33,7 +33,9 @@ public static class JsonMapBuilder
         foreach (var kvp in map.NodeContainer.NodesObjects)
             serializableNodeContainer.NodesObjects.Add($"{kvp.Key.x},{kvp.Key.y}", kvp.Value);
 
-        // Serialize the entire NodeContainer
+        foreach (var kvp in map.NodeContainer.NodesFlags)
+            serializableNodeContainer.NodesFlags.Add($"{kvp.Key.x},{kvp.Key.y}", kvp.Value);
+
         string json = JsonSerializer.Serialize(serializableNodeContainer, options);
         File.WriteAllText(filePath, json);
         Console.WriteLine("Map saved to JSON successfully.");
@@ -52,7 +54,6 @@ public static class JsonMapBuilder
         if (loaded == null)
             throw new InvalidDataException("Failed to deserialize JSON map data.");
 
-        // Convert back to original structures
         foreach (var node in loaded.NodesFloor)
         {
             var parts = node.Split(',');
@@ -77,6 +78,16 @@ public static class JsonMapBuilder
             map.NodeContainer.NodesObjects.Add(new Vect2D(int.Parse(keyParts[0]), int.Parse(keyParts[1])), kvp.Value);
         }
 
+        // NEW: restore flags if present
+        if (loaded.NodesFlags != null)
+        {
+            foreach (var kvp in loaded.NodesFlags)
+            {
+                var keyParts = kvp.Key.Split(',');
+                map.NodeContainer.NodesFlags.Add(new Vect2D(int.Parse(keyParts[0]), int.Parse(keyParts[1])), kvp.Value);
+            }
+        }
+
         Console.WriteLine("JsonMapBuilder: Map loaded from JSON successfully.");
         return map;
     }
@@ -87,5 +98,7 @@ public static class JsonMapBuilder
         public List<string> NodesFloorRaw { get; set; } = new();
         public Dictionary<string, TileSpawnType> NodesGenerate { get; set; } = new();
         public Dictionary<string, TileSpawnType> NodesObjects { get; set; } = new();
+        // NEW: flags
+        public Dictionary<string, TileSpawnType>? NodesFlags { get; set; } = new();
     }
 }

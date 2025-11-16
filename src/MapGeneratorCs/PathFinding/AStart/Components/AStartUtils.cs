@@ -7,7 +7,7 @@ namespace MapGeneratorCs.PathFinding.AStar.Utils;
     
 public static class AStarUtils
 {
-        public static List<Vect2D>? FindPath(PathNodes pathNodes, Vect2D start, Vect2D goal)
+        public static PathResult? FindPath(PathNodes pathNodes, Vect2D start, Vect2D goal)
     {
         var timeLogger = new TimeLogger();
         timeLogger.Print("AStarUtils.FindPath starting", false);
@@ -45,7 +45,7 @@ public static class AStarUtils
                 }
                 path.Reverse();
                 timeLogger.Print("AStarUtils.FindPath completed", true);
-                return path;
+                return new PathResult(path, g[goal]);
             }
 
             closed.Add(currentPos);

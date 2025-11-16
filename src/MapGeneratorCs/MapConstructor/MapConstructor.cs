@@ -80,6 +80,7 @@ public class MapConstructor
         this.spawnWeights = loaded.spawnWeights;
         this.random = loaded.random;
         this.padding = loaded.padding;
+        this.GeneratePathNodes();
     }
     public void ClearAllData()
     {

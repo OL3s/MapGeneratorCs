@@ -81,7 +81,7 @@ public class DijGenerator
     public float GetCostAt(Vect2D position) =>
         Dist.TryGetValue(position, out var d) ? d : float.MaxValue;
 
-    public List<Vect2D>? FindPath(Vect2D goalPos)
+    public PathResult? FindPath(Vect2D goalPos)
     {
         if (!Dist.TryGetValue(goalPos, out var d) || d == float.MaxValue)
             return null;
@@ -97,7 +97,7 @@ public class DijGenerator
             cur = p!.Value;
         }
         path.Reverse();
-        return path;
+        return new PathResult(path, d);
     }
 
     public void SavePathToImage(List<Vect2D> path)

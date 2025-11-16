@@ -105,7 +105,7 @@ public static class PathFindingUtils
         return Math.Abs(a.x - b.x) + Math.Abs(a.y - b.y);
     }
 
-    public static List<Vect2D> RetracePath(PathNode goal)
+    public static PathResult RetracePath(PathNode goal, float totalCost)
     {
         var path = new List<Vect2D>();
         var current = goal;
@@ -117,7 +117,7 @@ public static class PathFindingUtils
         }
 
         path.Reverse();
-        return path;
+        return new PathResult(path, totalCost);
     }
 
     public static PathNodes CreatePathNodesFromMap(

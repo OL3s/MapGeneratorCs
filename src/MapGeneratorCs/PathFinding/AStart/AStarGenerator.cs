@@ -13,7 +13,7 @@ public class AStarGenerator
     {
         PathNodes = pathNodes;
     }
-    public List<Vect2D>? FindPath(Vect2D startPos, Vect2D goalPos)
+    public PathResult? FindPath(Vect2D startPos, Vect2D goalPos)
     {
         var Return = AStarUtils.FindPath(PathNodes, startPos, goalPos);
         return Return;

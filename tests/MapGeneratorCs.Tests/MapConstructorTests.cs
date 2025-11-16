@@ -47,7 +47,6 @@ public class MapConstructorTests
         var newMap = new MapConstructor();
         newMap.LoadMapFromJson();
 
-
         // check if loaded map has same number of nodes
         Assert.Equal(map.NodeContainer.NodesFloor.Count, newMap.NodeContainer.NodesFloor.Count);
         Assert.Equal(map.NodeContainer.NodesObjects.Count, newMap.NodeContainer.NodesObjects.Count);

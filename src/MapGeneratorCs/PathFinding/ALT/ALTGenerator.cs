@@ -41,7 +41,7 @@ public class ALTGenerator
     }
 
     // A* that uses ALT heuristic
-    public List<Vect2D>? FindPath(Vect2D startPos, Vect2D goalPos)
+    public PathResult? FindPath(Vect2D startPos, Vect2D goalPos)
     {
         var timeLogger = new TimeLogger();
         timeLogger.Print("ALT AStar: FindPath starting", false);
@@ -69,7 +69,7 @@ public class ALTGenerator
 
             if (ReferenceEquals(current, goalNode))
             {
-                var path = PathFindingUtils.RetracePath(goalNode);
+                var path = PathFindingUtils.RetracePath(goalNode, current.TotalCost);
                 timeLogger.Print("ALT AStar: FindPath completed", true);
                 return path;
             }
