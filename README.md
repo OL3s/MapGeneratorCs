@@ -60,25 +60,6 @@ MapGeneratorCs.PathFinding.Image.PathImagify.SavePointOfInterestToImage(
 
 All reuse immutable neighbor sets created in: [`PathFindingUtils.GetNeighbours`](src/MapGeneratorCs/PathFinding/Tools/PathFindingUtils.cs)
 
-## Performance notes (v0.4)
-
-- Graph cloning removed (except implicit distance captures inside landmarks).
-- Precompute Dijkstra once if many queries from same start.
-- ALT improves long-path A* by tighter heuristic; landmark count 4–8 is usually enough.
-- Image saving guards huge sizes (see [`PathImagify.SavePathValuesToImage`](src/MapGeneratorCs/PathFinding/Tools/PathImagify.cs)).
-
-## Key types
-
-- Map + generation: [`MapConstructor`](src/MapGeneratorCs/MapConstructor/MapConstructor.cs)
-- Graph nodes: [`PathNodes`](src/MapGeneratorCs/PathFinding/Tools/PathFindingTypes.cs)
-- Utilities: [`PathFindingUtils`](src/MapGeneratorCs/PathFinding/Tools/PathFindingUtils.cs)
-- Config loader: [`ConfigLoader`](src/MapGeneratorCs/MapConstructor/Components/ConfigLoader.cs)
-
-## Tests
-
-- Unit: [`MapGeneratorCs.Tests`](tests/MapGeneratorCs.Tests/MapGeneratorCs.Tests.csproj)
-- Pathfinding integration: [`PathFindingOnMapTest.cs`](tests/MapGeneratorCs.Tests/PathFindingOnMapTest.cs)
-
 ## Notes
 
 Outputs in `export/` and configs in `config/` are git-ignored. No license specified (all rights reserved). Keep landmark count modest for very large maps.

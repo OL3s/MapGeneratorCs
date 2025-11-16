@@ -14,8 +14,6 @@ public static class AStarUtils
         if (!pathNodes.ContainsKey(start) || !pathNodes.ContainsKey(goal))
             return null;
 
-        pathNodes.ResetNodeCosts();
-
         // per-run state
         var g = new Dictionary<Vect2D, float>(pathNodes.Count);
         var cameFrom = new Dictionary<Vect2D, Vect2D?>(pathNodes.Count);

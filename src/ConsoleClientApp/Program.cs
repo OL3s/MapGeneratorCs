@@ -44,7 +44,7 @@ internal class Program
             goalPos
         );
         stopwatch.Stop();
-        schoolInfo.TimerAStar = stopwatch.ElapsedMilliseconds;
+        schoolInfo.AStar = (stopwatch.ElapsedMilliseconds, pathToGoal.Cost);
 
         // pathfinding Dijkstra Raw
         stopwatch.Restart();
@@ -54,20 +54,21 @@ internal class Program
             goalPos
         );
         stopwatch.Stop();
-        schoolInfo.TimerDijkstrRaw = stopwatch.ElapsedMilliseconds;
+        schoolInfo.DijkstraRaw = (stopwatch.ElapsedMilliseconds, dijPath.Cost);
 
         // ALT generator
         var altGenerator = new ALTGenerator(startPos, landmarkCount: 5, map.PathNodes);
         stopwatch.Restart();
         var altPath = altGenerator.FindPath(startPos, goalPos);
         stopwatch.Stop();
-        schoolInfo.TimerALT = stopwatch.ElapsedMilliseconds;
+        schoolInfo.ALT = (stopwatch.ElapsedMilliseconds, altPath.Cost);
 
         // Find 5 closest objects
         var closestByAir = map.FindClosestObjectNodesOfTypeByAirDistance(
             map.StartPosition,
-            Type: TileSpawnType.TreasureObject,
-            Radius: 100
+            type: TileSpawnType.TreasureObject,
+            radius: 100,
+            count: 30
         );
 
         // collect up to 5 best paths
@@ -120,13 +121,13 @@ internal class Program
 
     private struct SchoolAssignmentImportantInfo
     {
-        public float TimerAStar;
-        public float TimerDijkstrRaw;
-        public float TimerALT;
+        public (float TimerAStar, float PathLength) AStar;
+        public (float TimerDijkstrRaw, float PathLength) DijkstraRaw;
+        public (float TimerALT, float PathLength) ALT;
         public Vect2D[] ClosestObjects;
         public override string ToString()
         {
-            return $"  - A*: {TimerAStar} ms\n  - Dijkstra Raw: {TimerDijkstrRaw} ms\n  - ALT: {TimerALT} ms\n  - Closest Objects: {string.Join(", ", ClosestObjects)}";
+            return $"  - A*: {AStar.TimerAStar} ms, length {AStar.PathLength}\n  - Dijkstra Raw: {DijkstraRaw.TimerDijkstrRaw} ms, length {DijkstraRaw.PathLength}\n  - ALT: {ALT.TimerALT} ms, length {ALT.PathLength}\n  - Closest Objects: {string.Join(", ", ClosestObjects)}";
         }
     }
 }
