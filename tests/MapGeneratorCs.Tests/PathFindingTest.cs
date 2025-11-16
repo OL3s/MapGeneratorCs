@@ -150,7 +150,8 @@ public class PathFindingTest
         map.GenerateMap();
         map.GeneratePathNodes();
 
-        var a = new AStarGenerator(map.PathNodes);
+        Assert.NotNull(map.PathNodes);
+        var a = new AStarGenerator(map.PathNodes!);
         var path = a.FindPath(map.StartPosition, map.EndPosition);
 
         Assert.NotNull(path);
