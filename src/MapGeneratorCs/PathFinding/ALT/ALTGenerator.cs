@@ -41,7 +41,7 @@ public class ALTGenerator
     }
 
     // A* that uses ALT heuristic
-    public PathResult? FindPath(Vect2D startPos, Vect2D goalPos)
+    public PathResult? FindPath(Vect2D startPos, Vect2D goalPos, float maxSearchCost = float.MaxValue)
     {
         var timeLogger = new TimeLogger();
         timeLogger.Print("ALT AStar: FindPath starting", false);
@@ -63,6 +63,12 @@ public class ALTGenerator
 
         while (open.TryDequeue(out var current, out var prio))
         {
+            if (current.CostFromStart > maxSearchCost)
+            {
+                timeLogger.Print($"ALT AStar: FindPath exceeded max search cost ({current.CostFromStart})", true);
+                return null;
+            }
+
             // skip stale entries
             if (!current.TotalCost.Equals(prio))
                 continue;
@@ -70,7 +76,7 @@ public class ALTGenerator
             if (ReferenceEquals(current, goalNode))
             {
                 var path = PathFindingUtils.RetracePath(goalNode, current.TotalCost);
-                timeLogger.Print("ALT AStar: FindPath completed", true);
+                timeLogger.Print($"ALT AStar: FindPath completed, len {path.Count}, cost {current.TotalCost}", true);
                 return path;
             }
 

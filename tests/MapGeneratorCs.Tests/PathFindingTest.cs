@@ -116,7 +116,6 @@ public class PathFindingTest
         var nodes = BuildGrid(5, 5);
         var start = new Vect2D(0, 0);
         var goal = new Vect2D(4, 4);
-
         var pre = new DijGenerator(nodes, start).FindPath(goal);
         var raw = DijUtils.CreateDijPathFromPathNodes(nodes, start, goal);
 
@@ -156,5 +155,21 @@ public class PathFindingTest
 
         Assert.NotNull(path);
         Assert.True(path!.Count > 1);
+    }
+
+    [Fact]
+    public void OvercostedPath_IsRejected_ByAStar_AndDijkstra()
+    {
+        var nodes = BuildGrid(5, 5);
+        var start = new Vect2D(0, 0);
+        var goal = new Vect2D(4, 4);
+
+        var a = new AStarGenerator(nodes);
+        var pathA = a.FindPath(start, goal, 1f);
+        Assert.Null(pathA);
+
+        var dij = new DijGenerator(nodes, start);
+        var pathD = dij.FindPath(goal, maxSearchCost: 1f);
+        Assert.Null(pathD);
     }
 }

@@ -166,6 +166,55 @@ public class Imagify
         Console.WriteLine($"POI image saved to {filePath + filename}");
     }
 
+    public static void SavePointOfInterestToImage(PathNodes pathNodes, List<PathResult> pointPositions, string filename, string filePath = "export/", int radius = 3)
+    {
+        // add .png tag if missing
+        if (!filename.EndsWith(".png"))
+            filename += ".png";
+
+        (int maxX, int maxY) = (0, 0);
+        foreach (var kvp in pathNodes)
+        {
+            var pos = kvp.Key;
+            if (pos.x > maxX) maxX = pos.x;
+            if (pos.y > maxY) maxY = pos.y;
+        }
+
+        int width = maxX + 1;
+        int height = maxY + 1;
+        using var image = new Image<Rgba32>(width, height);
+        foreach (var kvp in pathNodes)
+        {
+            var pos = kvp.Key;
+            // base floor
+            image[pos.x, pos.y] = new Rgba32(50, 50, 50); // Floor dark gray
+        }
+
+        // mark POI positions (use the final node of each PathResult as the POI center)
+        foreach (var pathResult in pointPositions)
+        {
+            if (pathResult == null || pathResult.Count == 0) continue;
+            var poi = pathResult[^1]; // destination / object position
+
+            for (int dx = -radius; dx <= radius; dx++)
+            {
+                for (int dy = -radius; dy <= radius; dy++)
+                {
+                    int x = poi.x + dx;
+                    int y = poi.y + dy;
+                    if (x >= 0 && x < image.Width && y >= 0 && y < image.Height)
+                    {
+                        image[x, y] = new Rgba32(255, 0, 255); // Magenta for POI area
+                    }
+                }
+            }
+        }
+
+        Directory.CreateDirectory(Path.GetDirectoryName(filePath) ?? ".");
+        image.Save(filePath + filename, new PngEncoder());
+        Console.WriteLine($"POI image saved to {filePath + filename}");
+    }
+
    public static void SaveMapToImage(MapConstructor map, string filename, string filePath = "export/", bool includeGenerateNodes = false)
     {
         if (map == null) throw new ArgumentNullException(nameof(map));

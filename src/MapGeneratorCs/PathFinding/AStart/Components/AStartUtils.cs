@@ -7,12 +7,14 @@ namespace MapGeneratorCs.PathFinding.AStar.Utils;
     
 public static class AStarUtils
 {
-        public static PathResult? FindPath(PathNodes pathNodes, Vect2D start, Vect2D goal)
+        public static PathResult? FindPath(PathNodes pathNodes, Vect2D start, Vect2D goal, float maxSearchCost = float.MaxValue)
     {
         var timeLogger = new TimeLogger();
         timeLogger.Print("AStarUtils.FindPath starting", false);
         if (!pathNodes.ContainsKey(start) || !pathNodes.ContainsKey(goal))
             return null;
+
+        pathNodes.ResetNodeCosts();
 
         // per-run state
         var g = new Dictionary<Vect2D, float>(pathNodes.Count);
@@ -29,6 +31,13 @@ public static class AStarUtils
 
         while (open.TryDequeue(out var currentPos, out var priority))
         {
+            // check max search cost
+            if (g[currentPos] > maxSearchCost)
+            {
+                timeLogger.Print($"AStarUtils.FindPath exceeded max search cost ({g[currentPos]})", true);
+                return null;
+            }
+
             var fNow = g[currentPos] + Heuristic(currentPos);
             if (!fNow.Equals(priority))
                 continue;
@@ -44,7 +53,7 @@ public static class AStarUtils
                     c = cameFrom[c]!.Value;
                 }
                 path.Reverse();
-                timeLogger.Print("AStarUtils.FindPath completed", true);
+                timeLogger.Print($"AStarUtils.FindPath completed, len {path.Count}, cost {g[goal]}", true);
                 return new PathResult(path, g[goal]);
             }
 

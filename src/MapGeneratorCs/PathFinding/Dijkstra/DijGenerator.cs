@@ -81,7 +81,7 @@ public class DijGenerator
     public float GetCostAt(Vect2D position) =>
         Dist.TryGetValue(position, out var d) ? d : float.MaxValue;
 
-    public PathResult? FindPath(Vect2D goalPos)
+    public PathResult? FindPath(Vect2D goalPos, float maxSearchCost = float.MaxValue)
     {
         if (!Dist.TryGetValue(goalPos, out var d) || d == float.MaxValue)
             return null;
@@ -90,6 +90,12 @@ public class DijGenerator
         var cur = goalPos;
         while (true)
         {
+            if (Dist[cur] > maxSearchCost)
+            {
+                Console.WriteLine($"DijGenerator.FindPath: path cost {Dist[cur]} exceeds max search cost {maxSearchCost}");
+                return null;
+            }
+
             path.Add(cur);
             if (cur.Equals(StartPosition)) break;
             var ok = Parent.TryGetValue(cur, out var p) && p.HasValue;

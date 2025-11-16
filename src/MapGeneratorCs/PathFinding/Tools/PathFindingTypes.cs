@@ -123,4 +123,9 @@ public class PathResult : List<Vect2D>
     {
         Cost = cost;
     }
+    public IReadOnlyList<Vect2D> Positions => this;
+    public override string ToString()
+    {
+        return $"PathResult(len={this.Count}, cost={Cost})";
+    }
 }

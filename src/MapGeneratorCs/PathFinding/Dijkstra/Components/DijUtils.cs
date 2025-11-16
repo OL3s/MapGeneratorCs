@@ -20,7 +20,7 @@ public static class DijUtils
         // Quick check for start == end
         if (start.Equals(end))
         {
-            timeLogger.Print("DijUtils.CreateDijPathFromPathNodes completed", true);
+            timeLogger.Print("DijUtils.CreateDijPathFromPathNodes completed (start == end)", true);
             return new PathResult(new List<Vect2D> { start }, 0f);
         }
 
@@ -57,7 +57,7 @@ public static class DijUtils
             }
         }
 
-        if (!prev[end].HasValue) { timeLogger.Print("DijUtils.CreateDijPathFromPathNodes completed", true); return null; }
+        if (!prev[end].HasValue) { timeLogger.Print("DijUtils.CreateDijPathFromPathNodes completed (path not found)", true); return null; }
 
         var path = new List<Vect2D>();
         var c = end;
@@ -68,12 +68,12 @@ public static class DijUtils
             c = prev[c]!.Value;
         }
         path.Reverse();
-        timeLogger.Print("DijUtils.CreateDijPathFromPathNodes completed", true);
+        timeLogger.Print($"DijUtils.CreateDijPathFromPathNodes completed, len {path.Count}, cost {dist[end]}", true);
         return new PathResult(path, dist[end]);
     }
 
     // Legacy helper kept for compatibility with DijNodes callers
-    public static PathResult? FindDijPathFromDijNodes(DijNodes dijNodes, Vect2D end)
+    public static PathResult? FindDijPathFromDijNodes(DijNodes dijNodes, Vect2D end, float maxSearchCost = float.MaxValue)
     {
         if (!dijNodes.ContainsKey(end))
             return null;
@@ -82,6 +82,11 @@ public static class DijUtils
         var currentNode = dijNodes[end];
         while (currentNode != null)
         {
+            if (currentNode.CostFromStart > maxSearchCost)
+            {
+                Console.WriteLine($"DijUtils.FindDijPathFromDijNodes: path cost {currentNode.CostFromStart} exceeds max search cost {maxSearchCost}");
+                return null;
+            }
             path.Add(currentNode.Position);
             if (currentNode.Position.Equals(dijNodes.StartPosition))
                 break;
@@ -166,11 +171,11 @@ public class DijNodes : PathNodes
         timeLogger.Print("DjiNodes-Precompile full map completed", true);
     }
 
-    public List<Vect2D>? FindPathTo(Vect2D goalPos)
+    public List<Vect2D>? FindPathTo(Vect2D goalPos, float maxSearchCost = float.MaxValue)
     {
         var timeLogger = new TimeLogger();
         timeLogger.Print("DijNodes-FindPrecompiledPath starting", false);
-        var path = DijUtils.FindDijPathFromDijNodes(this, goalPos);
+        var path = DijUtils.FindDijPathFromDijNodes(this, goalPos, maxSearchCost);
         timeLogger.Print("DijNodes-FindPrecompiledPath completed", true);
         return path;
     }

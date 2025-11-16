@@ -88,19 +88,19 @@ public class MapConstructor
     }
 
     public List<Vect2D> FindClosestObjectNodesOfTypeByAirDistance
-    (       Vect2D from,
-            Dictionary<Vect2D, TileSpawnType> objectNodes,
-            TileSpawnType? searchType = null,
-            int? maxSearchDistance = null,
-            int? maxObjectCount = null
+    (
+        Vect2D from,
+        TileSpawnType? Type = null,
+        int? Count = null,
+        int? Radius = null
     )
     {
         var foundNodes = MapUtils.FindClosestObjectNodesOfTypeByAirDistance(
             from,
-            objectNodes,
-            searchType,
-            maxSearchDistance,
-            maxObjectCount
+            NodeContainer.NodesObjects,
+            Type,
+            Radius,
+            Count
         );
         return foundNodes;
     }

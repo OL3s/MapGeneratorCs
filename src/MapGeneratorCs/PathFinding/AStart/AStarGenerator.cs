@@ -13,9 +13,9 @@ public class AStarGenerator
     {
         PathNodes = pathNodes;
     }
-    public PathResult? FindPath(Vect2D startPos, Vect2D goalPos)
+    public PathResult? FindPath(Vect2D startPos, Vect2D goalPos, float maxSearchCost = float.MaxValue)
     {
-        var Return = AStarUtils.FindPath(PathNodes, startPos, goalPos);
+        var Return = AStarUtils.FindPath(PathNodes, startPos, goalPos, maxSearchCost);
         return Return;
     }
 

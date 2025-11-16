@@ -9,11 +9,15 @@ using MapGeneratorCs.PathFinding.ALT;
 using MapGeneratorCs.Generator.Types;
 using MapGeneratorCs.Logging;
 using MapGeneratorCs.ExportKit;
+using MapGeneratorCs.PathFinding.Types;
+using System.Diagnostics;
 
 internal class Program
 {
     private static void Main(string[] args)
     {
+        var stopwatch = new Stopwatch();
+        var schoolInfo = new SchoolAssignmentImportantInfo();
         MapConstructor map;
 
         if (args.Length > 0 && int.TryParse(args[0], out int len))
@@ -29,39 +33,72 @@ internal class Program
         map.GeneratePathNodes();
         map.SaveMapAsImage();
 
-        // Find closest object nodes of a specific type
-        var closest = map.FindClosestObjectNodesOfTypeByAirDistance(
-            new Vect2D(10, 10),
-            map.NodeContainer.NodesObjects,
-            maxSearchDistance: 50,
-            maxObjectCount: 5
-        );
-
         // pathfinding AStar
         var aStar = new AStarGenerator(map.PathNodes);
         var startPos = map.StartPosition;
         var goalPos = map.EndPosition;
+
+        stopwatch.Start();
         var pathToGoal = aStar.FindPath(
             startPos,
             goalPos
         );
+        stopwatch.Stop();
+        schoolInfo.TimerAStar = stopwatch.ElapsedMilliseconds;
 
         // pathfinding Dijkstra Raw
+        stopwatch.Restart();
         var dijPath = DijUtils.CreateDijPathFromPathNodes(
             map.PathNodes,
             startPos,
             goalPos
         );
+        stopwatch.Stop();
+        schoolInfo.TimerDijkstrRaw = stopwatch.ElapsedMilliseconds;
 
         // ALT generator
         var altGenerator = new ALTGenerator(startPos, landmarkCount: 5, map.PathNodes);
+        stopwatch.Restart();
         var altPath = altGenerator.FindPath(startPos, goalPos);
-        altGenerator.SaveLandmarkPositionAsImage();
+        stopwatch.Stop();
+        schoolInfo.TimerALT = stopwatch.ElapsedMilliseconds;
 
+        // Find 5 closest objects
+        var closestByAir = map.FindClosestObjectNodesOfTypeByAirDistance(
+            map.StartPosition,
+            Type: TileSpawnType.TreasureObject,
+            Radius: 100
+        );
+
+        // collect up to 5 best paths
+        var objPathList = new List<PathResult>();
+
+        foreach (var objPos in closestByAir)
+        {
+            var pathToObj = altGenerator.FindPath(
+                startPos,
+                objPos,
+                maxSearchCost: 300f
+            );
+            if (pathToObj != null)
+                objPathList.Add(pathToObj);
+        }
+
+        objPathList.Sort((a, b) => a.Cost.CompareTo(b.Cost));
+        objPathList = objPathList.Take(5).ToList();
+        schoolInfo.ClosestObjects = objPathList.Select(p => p.Last()).ToArray();
+
+        foreach (var result in objPathList)
+        {
+            Console.WriteLine($"Found path to object {result}");
+        }
+
+        // Save results in images
+        altGenerator.SaveLandmarkPositionAsImage();
         aStar.SavePathAndMapToImage(pathToGoal);
 
         // draw precomputed dist map
-        Imagify.SavePathToImage(map.PathNodes, dijPath, "dijkstra_path_output.png");
+        Imagify.SavePathToImage(map.PathNodes, dijPath, "dijkstra_rawpath_output.png");
 
         int i = 0;
         foreach (var landmark in altGenerator.Landmarks)
@@ -73,5 +110,24 @@ internal class Program
         // Export tilesset background
         var exportedBackground = ExportKit.GenerateDefaultBackground(map.NodeContainer);
         Imagify.SaveExportedBackgroundToImage(exportedBackground, "tilesset_background_output.png");
+
+        // Export tilesset with objects
+        Imagify.SavePointOfInterestToImage(map.PathNodes, objPathList, "tilesset_with_5_closest_treasure_output.png", radius: 1);
+
+        Console.WriteLine("School Assignment Important Info:");
+        Console.WriteLine(schoolInfo.ToString());
+    }
+
+    private struct SchoolAssignmentImportantInfo
+    {
+        public float TimerAStar;
+        public float TimerDijkstrRaw;
+        public float TimerALT;
+        public Vect2D[] ClosestObjects;
+        public override string ToString()
+        {
+            return $"  - A*: {TimerAStar} ms\n  - Dijkstra Raw: {TimerDijkstrRaw} ms\n  - ALT: {TimerALT} ms\n  - Closest Objects: {string.Join(", ", ClosestObjects)}";
+        }
     }
 }
+
