@@ -102,8 +102,6 @@ public static class PathFindingUtils
 
     public static float CalculateHeuristic(Vect2D a, Vect2D b)
     {
-        // Octile distance (admissible & consistent for 8-direction movement with
-        // orthogonal cost = 1 and diagonal cost = sqrt(2)).
         int dx = Math.Abs(a.x - b.x);
         int dy = Math.Abs(a.y - b.y);
         int min = Math.Min(dx, dy);
