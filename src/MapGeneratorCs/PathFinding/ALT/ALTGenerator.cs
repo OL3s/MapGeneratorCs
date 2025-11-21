@@ -11,11 +11,11 @@ public class ALTGenerator
 {
     public Landmarks Landmarks { get; set; }
     // hold the shared graph for running ALT-A*
-    private readonly PathNodes _pathNodes;
+    public PathNodes pathNodes;
 
     public ALTGenerator(Vect2D startPos, int landmarkCount, PathNodes pathNodes)
     {
-        _pathNodes = pathNodes;
+        this.pathNodes = pathNodes;
         Landmarks = new Landmarks(landmarkCount, startPos, pathNodes);
     }
 
@@ -46,16 +46,16 @@ public class ALTGenerator
         var timeLogger = new TimeLogger();
         timeLogger.Print("ALT AStar: FindPath starting", false);
 
-        if (!_pathNodes.ContainsKey(startPos) || !_pathNodes.ContainsKey(goalPos))
+        if (!pathNodes.ContainsKey(startPos) || !pathNodes.ContainsKey(goalPos))
             return null;
 
-        _pathNodes.ResetNodeCosts();
+        pathNodes.ResetNodeCosts();
 
         var open = new PriorityQueue<PathNode, float>();
         var closed = new HashSet<PathNode>();
 
-        var startNode = _pathNodes[startPos];
-        var goalNode  = _pathNodes[goalPos];
+        var startNode = pathNodes[startPos];
+        var goalNode  = pathNodes[goalPos];
 
         startNode.CostFromStart = 0f;
         startNode.HeuristicCost = HeuristicALT(startPos, goalPos);
@@ -84,7 +84,7 @@ public class ALTGenerator
 
             foreach (var neighRef in current.Neighbours)
             {
-                var neigh = _pathNodes[neighRef.Position];
+                var neigh = pathNodes[neighRef.Position];
                 if (closed.Contains(neigh))
                     continue;
 
@@ -95,7 +95,7 @@ public class ALTGenerator
 
                 // NEW: add corner penalty for diagonals
                 float cornerPenalty = diagonal
-                    ? PathFindingUtils.CalculateCornerPenalty(_pathNodes, current.Position, neighRef.Position)
+                    ? PathFindingUtils.CalculateCornerPenalty(pathNodes, current.Position, neighRef.Position)
                     : 0f;
 
                 float tentative = current.CostFromStart + step + neighRef.MovementPenalty + cornerPenalty;
@@ -116,7 +116,7 @@ public class ALTGenerator
     public void SaveLandmarkPositionAsImage() 
     {
         Imagify.SavePointOfInterestToImage(
-            _pathNodes,
+            pathNodes,
             Landmarks.GetPositions(),
             "ALT_Landmarks.png",
             "export/",

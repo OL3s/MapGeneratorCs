@@ -102,7 +102,14 @@ public static class PathFindingUtils
 
     public static float CalculateHeuristic(Vect2D a, Vect2D b)
     {
-        return Math.Abs(a.x - b.x) + Math.Abs(a.y - b.y);
+        // Octile distance (admissible & consistent for 8-direction movement with
+        // orthogonal cost = 1 and diagonal cost = sqrt(2)).
+        int dx = Math.Abs(a.x - b.x);
+        int dy = Math.Abs(a.y - b.y);
+        int min = Math.Min(dx, dy);
+        int max = Math.Max(dx, dy);
+        const float SQRT2 = 1.41421356237f;
+        return (max - min) * 1f + min * SQRT2;
     }
 
     public static PathResult RetracePath(PathNode goal, float totalCost)

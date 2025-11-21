@@ -357,4 +357,9 @@ public class Imagify
         image.Save(filePath + filename, new PngEncoder());
         Console.WriteLine($"Exported background image saved to {filePath + filename}");
     }
+
+    internal static void SavePathToImage(object pathNodes, List<Vect2D> path, string v)
+    {
+        throw new NotImplementedException();
+    }
 }

@@ -56,6 +56,7 @@ internal class Program
         stopwatch.Stop();
         schoolInfo.DijkstraRaw = (stopwatch.ElapsedMilliseconds, dijPath.Cost);
 
+
         // ALT generator
         var altGenerator = new ALTGenerator(startPos, landmarkCount: 5, map.PathNodes);
         stopwatch.Restart();
@@ -97,6 +98,7 @@ internal class Program
         // Save results in images
         altGenerator.SaveLandmarkPositionAsImage();
         aStar.SavePathAndMapToImage(pathToGoal);
+        Imagify.SavePathToImage(altGenerator.pathNodes, altPath, "alt_path_output.png");
 
         // draw precomputed dist map
         Imagify.SavePathToImage(map.PathNodes, dijPath, "dijkstra_rawpath_output.png");
