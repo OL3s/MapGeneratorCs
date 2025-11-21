@@ -118,14 +118,16 @@ public class PathNodes : Dictionary<Vect2D, PathNode>
 public class PathResult : List<Vect2D>
 {
     public float Cost { get; init; }
+    public int VisitedCount { get; set; }
 
     public PathResult(List<Vect2D> path, float cost) : base(path)
     {
         Cost = cost;
+        VisitedCount = 0;
     }
     public IReadOnlyList<Vect2D> Positions => this;
     public override string ToString()
     {
-        return $"PathResult(len={this.Count}, cost={Cost})";
+        return $"PathResult(len={this.Count}, cost={Cost}, visited={VisitedCount})";
     }
 }

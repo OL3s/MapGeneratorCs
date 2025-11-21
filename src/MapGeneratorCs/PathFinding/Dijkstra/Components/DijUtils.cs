@@ -32,9 +32,11 @@ public static class DijUtils
         var pq = new PriorityQueue<Vect2D, float>();
         pq.Enqueue(start, 0f);
 
+        int processed = 0;
         while (pq.TryDequeue(out var cur, out var prio))
         {
             if (!dist[cur].Equals(prio)) continue;
+            processed++;
             if (cur.Equals(end)) break;
 
             var node = pathNodes[cur];
@@ -68,13 +70,17 @@ public static class DijUtils
             c = prev[c]!.Value;
         }
         path.Reverse();
+
+        var result = new PathResult(path, dist[end]);
+        result.VisitedCount = processed;
         timeLogger.Print($"DijUtils.CreateDijPathFromPathNodes completed, len {path.Count}, cost {dist[end]}", true);
-        return new PathResult(path, dist[end]);
+        return result;
     }
 
     // Legacy helper kept for compatibility with DijNodes callers
     public static PathResult? FindDijPathFromDijNodes(DijNodes dijNodes, Vect2D end, float maxSearchCost = float.MaxValue)
     {
+        int processed = 0;
         if (!dijNodes.ContainsKey(end))
             return null;
 
@@ -82,6 +88,7 @@ public static class DijUtils
         var currentNode = dijNodes[end];
         while (currentNode != null)
         {
+            processed++;
             if (currentNode.CostFromStart > maxSearchCost)
             {
                 Console.WriteLine($"DijUtils.FindDijPathFromDijNodes: path cost {currentNode.CostFromStart} exceeds max search cost {maxSearchCost}");
@@ -93,7 +100,10 @@ public static class DijUtils
             currentNode = currentNode.ParentNode;
         }
         path.Reverse();
-        return new PathResult(path, dijNodes.GetCostAt(end));
+        
+        var result = new PathResult(path, dijNodes.GetCostAt(end));
+        result.VisitedCount = processed;
+        return result;
     }
 }
 

@@ -51,8 +51,10 @@ public static class AStarUtils
                     c = cameFrom[c]!.Value;
                 }
                 path.Reverse();
+                var result = new PathResult(path, g[goal]);
+                result.VisitedCount = closed.Count;
                 timeLogger.Print($"AStarUtils.FindPath completed, len {path.Count}, cost {g[goal]}", true);
-                return new PathResult(path, g[goal]);
+                return result;
             }
 
             closed.Add(currentPos);

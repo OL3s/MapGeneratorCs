@@ -44,7 +44,7 @@ internal class Program
             goalPos
         );
         stopwatch.Stop();
-        schoolInfo.AStar = (stopwatch.ElapsedMilliseconds, pathToGoal.Cost);
+        schoolInfo.AStar = (stopwatch.ElapsedMilliseconds, pathToGoal.Cost, pathToGoal.VisitedCount);
 
         // pathfinding Dijkstra Raw
         stopwatch.Restart();
@@ -54,7 +54,7 @@ internal class Program
             goalPos
         );
         stopwatch.Stop();
-        schoolInfo.DijkstraRaw = (stopwatch.ElapsedMilliseconds, dijPath.Cost);
+        schoolInfo.DijkstraRaw = (stopwatch.ElapsedMilliseconds, dijPath.Cost, dijPath.VisitedCount);
 
 
         // ALT generator
@@ -62,7 +62,7 @@ internal class Program
         stopwatch.Restart();
         var altPath = altGenerator.FindPath(startPos, goalPos);
         stopwatch.Stop();
-        schoolInfo.ALT = (stopwatch.ElapsedMilliseconds, altPath.Cost);
+        schoolInfo.ALT = (stopwatch.ElapsedMilliseconds, altPath.Cost, altPath.VisitedCount);
 
         // Find 5 closest objects
         var closestByAir = map.FindClosestObjectNodesOfTypeByAirDistance(
@@ -129,7 +129,14 @@ internal class Program
         public Vect2D[] ClosestObjects;
         public override string ToString()
         {
-            return $"  - A*: {AStar.TimerAStar} ms, length {AStar.PathLength}\n  - Dijkstra Raw: {DijkstraRaw.TimerDijkstrRaw} ms, length {DijkstraRaw.PathLength}\n  - ALT: {ALT.TimerALT} ms, length {ALT.PathLength}\n  - Closest Objects: {string.Join(", ", ClosestObjects)}";
+            var closest = (ClosestObjects == null || ClosestObjects.Length == 0)
+                ? "none"
+                : string.Join(", ", ClosestObjects);
+            return
+                $"  - A*: {AStar.TimerAStar} ms, length {AStar.PathLength}, visited {AStar.VisitedCount}\n" +
+                $"  - Dijkstra Raw: {DijkstraRaw.TimerDijkstrRaw} ms, length {DijkstraRaw.PathLength}, visited {DijkstraRaw.VisitedCount}\n" +
+                $"  - ALT: {ALT.TimerALT} ms, length {ALT.PathLength}, visited {ALT.VisitedCount}\n" +
+                "  - Closest Objects: " + closest;
         }
     }
 }

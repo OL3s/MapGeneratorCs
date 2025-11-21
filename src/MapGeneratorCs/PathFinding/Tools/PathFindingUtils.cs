@@ -118,6 +118,7 @@ public static class PathFindingUtils
         while (current != null)
         {
             path.Add(current.Position);
+            if (current.ParentNode == null) break;
             current = current.ParentNode!;
         }
 
