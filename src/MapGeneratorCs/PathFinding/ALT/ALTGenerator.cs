@@ -113,14 +113,14 @@ public class ALTGenerator
         return null;
     }
 
-    public void SaveLandmarkPositionAsImage() 
+    public void SaveLandmarkPositionAsImage(int radius = 4) 
     {
         Imagify.SavePointOfInterestToImage(
             pathNodes,
             Landmarks.GetPositions(),
             "ALT_Landmarks.png",
             "export/",
-            radius: 4
+            radius: radius
         );
     }
 }

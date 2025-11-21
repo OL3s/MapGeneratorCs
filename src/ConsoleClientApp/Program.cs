@@ -68,8 +68,8 @@ internal class Program
         var closestByAir = map.FindClosestObjectNodesOfTypeByAirDistance(
             map.StartPosition,
             type: TileSpawnType.TreasureObject,
-            radius: 100,
-            count: 30
+            radius: 200,
+            count: 200
         );
 
         // collect up to 5 best paths
@@ -96,7 +96,7 @@ internal class Program
         }
 
         // Save results in images
-        altGenerator.SaveLandmarkPositionAsImage();
+        altGenerator.SaveLandmarkPositionAsImage(12);
         aStar.SavePathAndMapToImage(pathToGoal);
         Imagify.SavePathToImage(altGenerator.pathNodes, altPath, "alt_path_output.png");
 
@@ -115,7 +115,7 @@ internal class Program
         Imagify.SaveExportedBackgroundToImage(exportedBackground, "tilesset_background_output.png");
 
         // Export tilesset with objects
-        Imagify.SavePointOfInterestToImage(map.PathNodes, objPathList, "tilesset_with_5_closest_treasure_output.png", radius: 1);
+        Imagify.SavePointOfInterestToImage(map.PathNodes, objPathList, "tilesset_with_5_closest_treasure_output.png", radius: 6);
 
         Console.WriteLine("School Assignment Important Info:");
         Console.WriteLine(schoolInfo.ToString());
@@ -123,9 +123,9 @@ internal class Program
 
     private struct SchoolAssignmentImportantInfo
     {
-        public (float TimerAStar, float PathLength) AStar;
-        public (float TimerDijkstrRaw, float PathLength) DijkstraRaw;
-        public (float TimerALT, float PathLength) ALT;
+        public (float TimerAStar, float PathLength, int VisitedCount) AStar;
+        public (float TimerDijkstrRaw, float PathLength, int VisitedCount) DijkstraRaw;
+        public (float TimerALT, float PathLength, int VisitedCount) ALT;
         public Vect2D[] ClosestObjects;
         public override string ToString()
         {
