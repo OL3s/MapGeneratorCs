@@ -126,6 +126,14 @@ public static class PathFindingUtils
         return new PathResult(path, totalCost);
     }
 
+    // Overload that also sets the visited node count for convenience at call sites
+    public static PathResult RetracePath(PathNode goal, float totalCost, int visitedCount)
+    {
+        var result = RetracePath(goal, totalCost);
+        result.VisitedCount = visitedCount;
+        return result;
+    }
+
     public static PathNodes CreatePathNodesFromMap(
         NodeContainerData container)
     {

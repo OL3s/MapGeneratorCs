@@ -75,8 +75,7 @@ public class ALTGenerator
 
             if (ReferenceEquals(current, goalNode))
             {
-                var path = PathFindingUtils.RetracePath(goalNode, current.TotalCost);
-                path.VisitedCount = closed.Count;
+                var path = PathFindingUtils.RetracePath(goalNode, current.TotalCost, closed.Count);
                 timeLogger.Print($"ALT AStar: FindPath completed, len {path.Count}, cost {current.TotalCost}", true);
                 return path;
             }
